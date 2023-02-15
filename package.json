@@ -8,6 +8,7 @@
     "dev": "nodemon bin/www.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "debug": "~4.3.4",
     "dotenv": "^16.0.3",
     "express": "~4.16.1",

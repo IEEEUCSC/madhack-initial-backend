@@ -4,19 +4,22 @@ import logger from 'morgan';
 import sql from 'mssql';
 import env from 'dotenv';
 import router from "./routes/index.js";
+import cors from "cors";
+import {fetchTokensFromDB, verifyToken} from "./middlware/checkTeamToken.js";
+
 env.config();
 
 const app = express();
 
+app.use(cors())
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({extended: false}));
 
-app.get("/", function (req, res) {
-  res.send("Hello world! Welcome to MADHack");
+app.get("/", (req, res) => {
+  res.json({"message": "Hello World! Welcome to MADHack"});
 });
-
-app.use("/api", router);
+app.use("/api", verifyToken, router);
 
 // database connection
 const config = {
@@ -31,11 +34,17 @@ const config = {
 
 sql.connect(config)
   .then(() => console.log('Database connected'))
+  .then(() => fetchTokensFromDB())
   .catch(err => console.log(err));
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   next(createError(404));
+});
+
+// error handler
+app.use((err, req, res) => {
+  res.status(err.status || 500).json({"error": err});
 });
 
 export default app;
