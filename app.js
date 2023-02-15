@@ -3,10 +3,8 @@ import express from 'express';
 import logger from 'morgan';
 import sql from 'mssql';
 import env from 'dotenv';
+import router from "./routes/index.js";
 env.config();
-
-import indexRouter from './routes/index.js';
-import usersRouter from './routes/users.js';
 
 const app = express();
 
@@ -14,8 +12,11 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.get("/", function (req, res) {
+  res.send("Hello world! Welcome to MADHack");
+});
+
+app.use("/api", router);
 
 // database connection
 const config = {
