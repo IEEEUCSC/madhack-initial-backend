@@ -4,7 +4,11 @@ import logger from 'morgan';
 import sql from 'mssql';
 import env from 'dotenv';
 import router from "./routes/index.js";
+import fs from 'fs';
 env.config();
+
+import indexRouter from './routes/index.js';
+import usersRouter from './routes/users.js';
 
 const app = express();
 
@@ -29,8 +33,15 @@ const config = {
   }
 }
 
+// connect to database
 sql.connect(config)
   .then(() => console.log('Database connected'))
+  .then(() => {
+    // create tables from schema file if they do not exist
+    const sqlFile = fs.readFileSync('scripts/schema.sql').toString();
+    return sql.query(sqlFile);
+  })
+  .then(() => console.log('Tables created'))
   .catch(err => console.log(err));
 
 // catch 404 and forward to error handler
