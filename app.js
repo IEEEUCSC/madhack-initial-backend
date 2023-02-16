@@ -3,7 +3,6 @@ import express from 'express';
 import logger from 'morgan';
 import sql from 'mssql';
 import env from 'dotenv';
-import router from "./routes/index.js";
 import fs from 'fs';
 import cors from "cors";
 import {fetchTokensFromDB, verifyToken} from "./middleware/checkTeamToken.js";
@@ -17,10 +16,12 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-app.get("/", (req, res) => {
-  res.json({"message": "Hello World! Welcome to MADHack"});
-});
-app.use("/api", verifyToken, router);
+// routes
+import apiRouter from "./routes/api.js";
+import indexRouter from "./routes/index.js";
+
+app.use ("/", indexRouter);
+app.use("/api", verifyToken, apiRouter);
 
 // database connection
 const config = {

@@ -15,6 +15,7 @@ export const registerUser = (req, res) => {
         request.input("contact_no", req.body("contactNo"));
         request.input("profile_picture", req.get("profilePicture"));
 
+        // TODO add team_id and user_id to the query
         request.query('INSERT INTO app_user (first_name, last_name, email, password, contact_no, profile_picture) VALUES (@first_name, @last_name, @email, @password, @contact_no, @profile_picture)', (err, recordset) => {
           if (err) console.log(err);
           res.status(200).json({"message": "User registered successfully"});
