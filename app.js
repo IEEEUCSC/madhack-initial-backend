@@ -6,7 +6,7 @@ import env from 'dotenv';
 import router from "./routes/index.js";
 import fs from 'fs';
 import cors from "cors";
-import {fetchTokensFromDB, verifyToken} from "./middlware/checkTeamToken.js";
+import {fetchTokensFromDB, verifyToken} from "./middleware/checkTeamToken.js";
 
 env.config();
 
