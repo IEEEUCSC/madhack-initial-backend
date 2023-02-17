@@ -4,10 +4,10 @@
  * Module dependencies.
  */
 
-import app from '../app.js';
-import debug from 'debug';
-import http from 'http';
-import env from 'dotenv';
+const app = require('../dist/app.js').default;
+const debug = require('debug')('madhack:server');
+const http = require('http');
+const env = require('dotenv');
 env.config();
 
 /**
