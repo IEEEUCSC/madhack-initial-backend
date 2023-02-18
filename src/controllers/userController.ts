@@ -9,6 +9,8 @@ interface TeamCount {
 export const registerUser = (req: Request, res: Response, next: NextFunction) => {
     try {
         let request = new sql.Request();
+
+        // Team Token from header - also the team id
         const teamToken = req.get("Team-Token");
         request.input("team_token", teamToken);
         request.input("email", req.body["email"]);
