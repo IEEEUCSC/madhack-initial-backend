@@ -6,7 +6,7 @@ import Team from "../models/Team";
 
 let tokensList: String[];
 
-export const fetchTokensFromDB = () => {
+export const fetchTeamTokensFromDB = () => {
     let request = new sql.Request();
 
     request.query('SELECT * from team', (err: Error | undefined, recordset: IResult<Team> | undefined) => {
@@ -18,7 +18,7 @@ export const fetchTokensFromDB = () => {
     });
 }
 
-export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+export const verifyTeamToken = (req: Request, res: Response, next: NextFunction) => {
     let token = req.get("Team-Token");
     if (token) {
         if (tokensList.includes(token.toUpperCase())) {
