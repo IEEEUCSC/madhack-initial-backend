@@ -1,13 +1,11 @@
 import express from 'express';
 import authRoutes from "./authRoutes";
 import userRoutes from "./userRoutes";
-import {home} from "../controllers/indexController";
+import {verifyAuthToken} from "../middleware/authTokenChecker";
 
 const router = express.Router();
 
 router.use("/auth", authRoutes);
-router.use("/user", userRoutes);
-
-router.route("/").get(home);
+router.use("/user", verifyAuthToken, userRoutes);
 
 export default router;
