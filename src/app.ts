@@ -11,7 +11,7 @@ import indexRouter from "./routes/indexRoutes";
 // middleware
 import {errorHandler} from "./middleware/errorHandler";
 import {verifyTeamToken} from "./middleware/teamTokenChecker";
-import {fetchTeamTokensFromDB} from "./shared/utils";
+import {fetchTeamTokensFromDB} from "./shared/helper";
 
 env.config();
 
