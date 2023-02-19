@@ -12,6 +12,6 @@ export const verifyTeamId = (req: Request, res: Response, next: NextFunction) =>
       next(createError(403, "Invalid team access token"));
     }
   } else {
-    next(createError(401, "Access denied! Team access token not provided"));
+    next(createError(401, "API access denied! No team access token provided"));
   }
 }
