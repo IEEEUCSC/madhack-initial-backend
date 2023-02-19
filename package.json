@@ -17,6 +17,8 @@
     "@types/jsonwebtoken": "^9.0.1",
     "@types/morgan": "^1.9.4",
     "@types/mssql": "^8.1.2",
+    "@types/multer": "^1.4.7",
+    "@types/uuid": "^9.0.0",
     "concurrently": "^7.6.0",
     "nodemon": "^2.0.20"
   },
@@ -30,6 +32,8 @@
     "joi": "^17.7.1",
     "jsonwebtoken": "^9.0.0",
     "morgan": "^1.10.0",
-    "mssql": "^9.1.1"
+    "mssql": "^9.1.1",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.0"
   }
 }
