@@ -4,8 +4,8 @@ IF (NOT EXISTS(SELECT *
     BEGIN
         CREATE TABLE team
         (
-            team_token UNIQUEIDENTIFIER PRIMARY KEY,
-            team_name  VARCHAR(255) NOT NULL UNIQUE,
+            team_id   UNIQUEIDENTIFIER PRIMARY KEY,
+            team_name VARCHAR(255) NOT NULL UNIQUE,
         );
     END;
 
@@ -58,7 +58,9 @@ IF (NOT EXISTS(SELECT *
             last_modified_dt DATETIME         NOT NULL,
             user_id          UNIQUEIDENTIFIER NOT NULL,
             category_id      UNIQUEIDENTIFIER NOT NULL,
+            team_id          UNIQUEIDENTIFIER NOT NULL,
             FOREIGN KEY (user_id) REFERENCES app_user (user_id),
             FOREIGN KEY (category_id) REFERENCES category (category_id),
+            FOREIGN KEY (team_id) REFERENCES team (team_id)
         );
     END;
