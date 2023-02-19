@@ -12,6 +12,7 @@ import indexRouter from "./routes/indexRoutes";
 import {errorHandler} from "./middleware/errorHandler";
 import {verifyTeamId} from "./middleware/teamIdChecker";
 import {fetchTeamIdsFromDB} from "./shared/helper";
+import {limitRequests} from "./middleware/rateLimiter";
 
 env.config();
 
@@ -23,7 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 app.use("/", indexRouter);
-app.use("/api", verifyTeamId, apiRouter);
+app.use("/api", limitRequests, verifyTeamId, apiRouter);
 
 // database connection
 const dbConfig: config = {
