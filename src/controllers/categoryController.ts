@@ -7,7 +7,7 @@ export const getCategories = (req: Request, res: Response, next: NextFunction) =
   const {userId} = req.query;
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);

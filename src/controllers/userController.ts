@@ -11,7 +11,7 @@ export const getUser = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
 
   try {
-    const teamToken = req.get("Team-Token") || "";
+    const teamToken = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_token", teamToken);
@@ -71,7 +71,7 @@ export const updateUser = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);

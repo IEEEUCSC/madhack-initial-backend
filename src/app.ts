@@ -3,10 +3,11 @@ import logger from 'morgan';
 import sql, {config} from 'mssql';
 import env from 'dotenv';
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "./swagger.json";
 
 // routes
 import apiRouter from "./routes/apiRoutes";
-import indexRouter from "./routes/indexRoutes";
 
 // middleware
 import {errorHandler} from "./middleware/errorHandler";
@@ -22,8 +23,8 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-app.use("/", indexRouter);
 app.use("/api", verifyTeamId, apiRouter);
+app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // database connection
 const dbConfig: config = {

@@ -30,7 +30,7 @@ export const registerUser = (req: Request, res: Response, next: NextFunction) =>
   }
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
@@ -54,7 +54,7 @@ export const registerUser = (req: Request, res: Response, next: NextFunction) =>
           }
 
         } else {
-          res.status(400).json({"message": "User already exists"});
+          res.status(409).json({"message": "User already exists"});
         }
 
       } else {
@@ -84,7 +84,7 @@ export const loginUser = (req: Request, res: Response, next: NextFunction) => {
 
   try {
     let request = new sql.Request();
-    const teamId = req.get("Team-Token");
+    const teamId = req.get("X-API-Key");
     request.input("team_id", teamId);
     request.input("email", email);
     request.query('SELECT * from app_user WHERE team_id=@team_id AND email=@email', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
