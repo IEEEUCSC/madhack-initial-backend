@@ -1,1 +1,1 @@
-export const tokensList: string[] = [];
+export let tokensList: string[] = [];

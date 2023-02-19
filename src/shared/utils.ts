@@ -4,7 +4,7 @@ import Team from "../models/Team";
 
 import {tokensList} from "./variables";
 
-export const fetchTokensFromDB = () => {
+export const fetchTeamTokensFromDB = () => {
     let request = new sql.Request();
 
     request.query('SELECT * from team', (err: Error | undefined, recordset: IResult<Team> | undefined) => {

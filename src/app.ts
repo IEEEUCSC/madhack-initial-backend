@@ -3,11 +3,15 @@ import logger from 'morgan';
 import sql, {config} from 'mssql';
 import env from 'dotenv';
 import cors from "cors";
-import {fetchTeamTokensFromDB, verifyTeamToken} from "./middleware/teamTokenChecker";
+
 // routes
 import apiRouter from "./routes/apiRoutes";
 import indexRouter from "./routes/indexRoutes";
+
+// middleware
 import {errorHandler} from "./middleware/errorHandler";
+import {verifyTeamToken} from "./middleware/teamTokenChecker";
+import {fetchTeamTokensFromDB} from "./shared/utils";
 
 env.config();
 
