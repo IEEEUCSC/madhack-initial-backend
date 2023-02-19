@@ -49,7 +49,7 @@ export const getTodoById = (req: Request, res: Response, next: NextFunction) => 
       if (recordset && !err) {
         res.status(200).json(recordset.recordsets[0]);
       } else {
-        res.status(500).json({"message": "Error getting todo"});
+        res.status(500).json({"message": "Error retrieving todo"});
       }
     });
   } catch (e) {

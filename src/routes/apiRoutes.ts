@@ -8,7 +8,7 @@ import categoryRoutes from "./categoryRoutes";
 const router = express.Router();
 
 router.use("/auth", authRoutes);
-router.use("/users", verifyAuthToken, userRoutes);
+router.use("/user", verifyAuthToken, userRoutes);
 router.use("/todos", verifyAuthToken, todoRoutes);
 router.use("/categories", categoryRoutes);
 

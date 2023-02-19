@@ -5,9 +5,27 @@ import createError from "http-errors";
 import Joi from "joi";
 import sql, {IResult} from "mssql";
 import AppUser from "../models/AppUser";
+import Todo from "../models/Todo";
 
 export const getUser = (req: Request, res: Response, next: NextFunction) => {
-  // TODO: Implement get user details
+  const userId = req.body.user.userId;
+
+  try {
+    const teamToken = req.get("Team-Token") || "";
+
+    let request = new sql.Request();
+    request.input("team_token", teamToken);
+    request.input("user_id", userId);
+    request.query('SELECT * FROM app_user WHERE team_id=@team_token AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+      if (recordset && !err) {
+        res.status(200).json(recordset.recordsets[0]);
+      } else {
+        res.status(500).json({"message": "Error retrieving user"});
+      }
+    });
+  } catch (e) {
+    next(createError());
+  }
 };
 
 export const uploadAvatar = (req: Request, res: Response, next: NextFunction) => {
