@@ -8,12 +8,12 @@ export const getTodos = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
 
   try {
-    const teamToken = req.get("Team-Token") || "";
+    const teamId = req.get("Team-Token") || "";
 
     let request = new sql.Request();
-    request.input("team_token", teamToken);
+    request.input("team_id", teamId);
     request.input("user_id", userId);
-    request.query('SELECT * FROM todo WHERE user_id=@user_id AND team_id=@team_token', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+    request.query('SELECT * FROM todo WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
         res.status(200).json(recordset.recordsets[0]);
       } else {
@@ -39,13 +39,13 @@ export const getTodoById = (req: Request, res: Response, next: NextFunction) => 
   }
 
   try {
-    const teamToken = req.get("Team-Token") || "";
+    const teamId = req.get("Team-Token") || "";
 
     let request = new sql.Request();
-    request.input("team_token", teamToken);
+    request.input("team_id", teamId);
     request.input("todo_id", todoId);
     request.input("user_id", userId);
-    request.query('SELECT * FROM todo WHERE todo_id=@todo_id AND team_id=@team_token AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+    request.query('SELECT * FROM todo WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
         res.status(200).json(recordset.recordsets[0]);
       } else {
@@ -90,10 +90,10 @@ export const createTodo = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const teamToken = req.get("Team-Token") || "";
+    const teamId = req.get("Team-Token") || "";
 
     let request = new sql.Request();
-    request.input("team_token", teamToken);
+    request.input("team_id", teamId);
     request.input("todo_id", todoId);
     request.input("title", title);
     request.input("notes", notes);
@@ -104,7 +104,7 @@ export const createTodo = (req: Request, res: Response, next: NextFunction) => {
     request.input("user_id", userId);
     request.input("category_id", categoryId);
 
-    request.query('INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_completed, last_modified_dt, user_id, category_id, team_id) VALUES (@todo_id, @title, @notes, @created_dt, @due_dt, @is_completed, @last_modified_dt, @user_id, @category_id, @team_token)', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+    request.query('INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_completed, last_modified_dt, user_id, category_id, team_id) VALUES (@todo_id, @title, @notes, @created_dt, @due_dt, @is_completed, @last_modified_dt, @user_id, @category_id, @team_id)', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
         res.status(201).json({"message": "Todo added successfully"});
       } else {
@@ -147,10 +147,10 @@ export const updateTodo = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const teamToken = req.get("Team-Token") || "";
+    const teamId = req.get("Team-Token") || "";
 
     let request = new sql.Request();
-    request.input("team_token", teamToken);
+    request.input("team_id", teamId);
     request.input("todo_id", todoId);
     request.input("title", title);
     request.input("notes", notes);
@@ -161,7 +161,7 @@ export const updateTodo = (req: Request, res: Response, next: NextFunction) => {
     request.input("user_id", userId);
     request.input("category_id", categoryId);
 
-    request.query('UPDATE todo SET title=@title, notes=@notes, created_dt=@created_dt, due_dt=@due_dt, is_completed=@is_completed, last_modified_dt=@last_modified_dt, category_id=@category_id WHERE todo_id=@todo_id AND team_id=@team_token AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+    request.query('UPDATE todo SET title=@title, notes=@notes, created_dt=@created_dt, due_dt=@due_dt, is_completed=@is_completed, last_modified_dt=@last_modified_dt, category_id=@category_id WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
         res.status(200).json({"message": "Todo updated successfully"});
       } else {
@@ -187,13 +187,13 @@ export const deleteTodo = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const teamToken = req.get("Team-Token") || "";
+    const teamId = req.get("Team-Token") || "";
 
     let request = new sql.Request();
-    request.input("team_token", teamToken);
+    request.input("team_id", teamId);
     request.input("todo_id", todoId);
     request.input("user_id", userId);
-    request.query('DELETE FROM todo WHERE todo_id=@todo_id AND team_id=@team_token AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+    request.query('DELETE FROM todo WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
         res.status(200).json({"message": "Todo deleted successfully"});
       } else {

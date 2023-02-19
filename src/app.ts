@@ -10,8 +10,8 @@ import indexRouter from "./routes/indexRoutes";
 
 // middleware
 import {errorHandler} from "./middleware/errorHandler";
-import {verifyTeamToken} from "./middleware/teamTokenChecker";
-import {fetchTeamTokensFromDB} from "./shared/helper";
+import {verifyTeamId} from "./middleware/teamIdChecker";
+import {fetchTeamIdsFromDB} from "./shared/helper";
 
 env.config();
 
@@ -23,34 +23,34 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 app.use("/", indexRouter);
-app.use("/api", verifyTeamToken, apiRouter);
+app.use("/api", verifyTeamId, apiRouter);
 
 // database connection
 const dbConfig: config = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    server: "madhack.database.windows.net",
-    database: process.env.DB_NAME,
-    options: {
-        encrypt: true
-    }
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: "madhack.database.windows.net",
+  database: process.env.DB_NAME,
+  options: {
+    encrypt: true
+  }
 }
 
 // connect to database
 sql.connect(dbConfig)
-    .then(() => console.log('Database connected'))
-    // .then(() => {
-    // create tables from schema file if they do not exist
-    // const sqlFile = fs.readFileSync(path.resolve(__dirname, '../scripts/schema.sql')).toString();
-    // return sql.query(sqlFile);
-    // })
-    // .then(() => console.log('Tables created'))
-    .then(() => fetchTeamTokensFromDB())
-    .catch(err => console.log(err));
+  .then(() => console.log('Database connected'))
+  // .then(() => {
+  // create tables from schema file if they do not exist
+  // const sqlFile = fs.readFileSync(path.resolve(__dirname, '../scripts/schema.sql')).toString();
+  // return sql.query(sqlFile);
+  // })
+  // .then(() => console.log('Tables created'))
+  .then(() => fetchTeamIdsFromDB())
+  .catch(err => console.log(err));
 
 // catch 404 and forward to error handler
 app.use((req: Request, res: Response, next: NextFunction) => {
-    next({status: 404, message: "Not Found"});
+  next({status: 404, message: "Not Found"});
 });
 
 app.use(errorHandler);

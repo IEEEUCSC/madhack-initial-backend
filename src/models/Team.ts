@@ -1,4 +1,4 @@
 export default interface Team {
-    team_token: string;
-    team_name: string;
+  team_id: string;
+  team_name: string;
 }

@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from "express";
 import multer from 'multer';
-import {v1 as uuidv1} from 'uuid';
+import {v1 as uuid_v1} from 'uuid';
 import createError from "http-errors";
 import Joi from "joi";
 import sql, {IResult} from "mssql";
@@ -17,7 +17,7 @@ export const uploadAvatar = (req: Request, res: Response, next: NextFunction) =>
     },
     filename: (req, file, cb) => {
       const extension = file.originalname.split('.').pop()
-      cb(null, uuidv1() + '.' + extension?.toLowerCase());
+      cb(null, uuid_v1() + '.' + extension?.toLowerCase());
     }
   });
 
@@ -53,17 +53,17 @@ export const updateUser = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const teamToken = req.get("Team-Token") || "";
+    const teamId = req.get("Team-Token") || "";
 
     let request = new sql.Request();
-    request.input("team_token", teamToken);
+    request.input("team_id", teamId);
     request.input("user_id", userId);
     request.input("first_name", firstName);
     request.input("last_name", lastName);
     request.input("email", email);
     request.input("password", password);
     request.input("contact_no", contactNo);
-    request.input("team_id", teamToken);
+    request.input("team_id", teamId);
     request.query('UPDATE user SET first_name=@first_name, last_name=@last_name, email=@email, password=@password, contact_no=@contact_no WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
       if (recordset && !err) {
         res.status(200).json(recordset.recordsets[0]);
