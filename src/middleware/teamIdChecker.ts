@@ -4,7 +4,7 @@ import {NextFunction, Request, Response} from "express";
 import {tokensList} from "../shared/variables";
 
 export const verifyTeamId = (req: Request, res: Response, next: NextFunction) => {
-  let token = req.get("Team-Token");
+  let token = req.get("X-API-Key");
   if (token) {
     if (tokensList.includes(token.toUpperCase())) {
       next();

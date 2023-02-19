@@ -8,7 +8,7 @@ export const getTodos = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
@@ -39,7 +39,7 @@ export const getTodoById = (req: Request, res: Response, next: NextFunction) => 
   }
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
@@ -90,7 +90,7 @@ export const createTodo = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
@@ -147,7 +147,7 @@ export const updateTodo = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
@@ -187,7 +187,7 @@ export const deleteTodo = (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
