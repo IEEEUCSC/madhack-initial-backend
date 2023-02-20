@@ -5,7 +5,7 @@ import createError from "http-errors";
 import Joi from "joi";
 import sql, {IResult} from "mssql";
 import AppUser from "../models/AppUser";
-import Todo from "../models/Todo";
+import joiConf from "../shared/joiConf";
 
 export const getUser = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
@@ -16,9 +16,16 @@ export const getUser = (req: Request, res: Response, next: NextFunction) => {
     let request = new sql.Request();
     request.input("team_token", teamToken);
     request.input("user_id", userId);
-    request.query('SELECT * FROM app_user WHERE team_id=@team_token AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+    request.query('SELECT * FROM app_user WHERE team_id=@team_token AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
       if (recordset && !err) {
-        res.status(200).json(recordset.recordsets[0]);
+        const user = recordset.recordset[0];
+        res.status(200).json({
+          "userId": user.user_id,
+          "firstName": user.first_name,
+          "lastName": user.last_name,
+          "email": user.email,
+          "contactNo": user.contact_no,
+        });
       } else {
         res.status(500).json({"message": "Error retrieving user"});
       }
@@ -45,9 +52,9 @@ export const uploadAvatar = (req: Request, res: Response, next: NextFunction) =>
     if (err) {
       next(createError(500, err.message));
     } else if (!req.file) {
-      next(createError(400, "No file uploaded"));
+      next(createError(400, "No avatar uploaded"));
     } else {
-      res.status(200).json({message: "File uploaded successfully"});
+      res.status(200).json({message: "Avatar uploaded successfully"});
     }
   });
 }
@@ -65,7 +72,7 @@ export const updateUser = (req: Request, res: Response, next: NextFunction) => {
     contactNo: Joi.string().required(),
   });
 
-  const {error} = schema.validate({firstName, lastName, email, password, contactNo});
+  const {error} = schema.validate({firstName, lastName, email, password, contactNo}, joiConf);
   if (error) {
     return res.status(400).json({error: error.details[0].message});
   }
