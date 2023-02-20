@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "MADHack ARGO API",
+    "title": "MADHack Agon API",
     "description": "MADHack Initial Round API Documentation",
     "contact": {
       "email": "ucscieee@gmail.com"
@@ -14,7 +14,7 @@
       "description": "Local Server"
     },
     {
-      "url": "https://argo.madhack.ucscieee.com/api",
+      "url": "https://agon.madhack.ucscieee.com/api",
       "description": "MADHack Server"
     }
   ],
@@ -54,7 +54,24 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/inline_response_200"
+                  "$ref": "#/components/schemas/response_200_object"
+                },
+                "examples": {
+                  "welcome-message": {
+                    "value": {
+                      "message": "Welcome to the MADHack Agon API"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
                 }
               }
             }
@@ -87,16 +104,63 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_200_object"
+                },
+                "example": {
+                  "message": "User logged in successfully",
+                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0RTgyMzc3NS05MTBBLTQ4MTEtQTU5NC0wOUI5NTY4MTVGQzEiLCJpYXQiOjE2NzY4ODU4OTAsImV4cCI6MTY3Njg4OTQ5MH0.zgyInY2jeK0MLn8ZWJRKO_ErcZUjzgc3UNRsBXvBRhA"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_400_object"
+                },
+                "example": {
+                  "error": "fieldName is required"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                },
+                "examples": {
+                  "invalid-credentials": {
+                    "value": {
+                      "error": "Invalid credentials"
+                    }
+                  },
+                  "invalid-token": {
+                    "value": {
+                      "error": "API access denied! No team access token provided"
+                    }
+                  }
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -126,19 +190,63 @@
         },
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_201_object"
+                },
+                "example": {
+                  "message": "User registered successfully"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_400_object"
+                },
+                "example": {
+                  "error": "fieldName is required"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_409_object"
+                },
+                "example": {
+                  "error": "User already exists"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -168,10 +276,30 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_400_object"
+                },
+                "example": {
+                  "error": "fieldName is required"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                },
+                "example": {
+                  "error": "No auth token provided"
+                }
+              }
+            }
           },
           "500": {
             "description": "Internal Server Error"
@@ -205,16 +333,125 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_200_object"
+                },
+                "example": {
+                  "message": "User updated successfully"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_400_object"
+                },
+                "example": {
+                  "error": "fieldName is required"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                },
+                "examples": {
+                  "internal-error": {
+                    "value": {
+                      "error": "Internal Server Error"
+                    }
+                  },
+                  "update-error": {
+                    "value": {
+                      "error": "Error updating user"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "deletes user",
+        "description": "Deletes logged in user",
+        "operationId": "deleteUser",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_200_object"
+                },
+                "example": {
+                  "message": "User deleted successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                },
+                "examples": {
+                  "internal-error": {
+                    "value": {
+                      "error": "Internal Server Error"
+                    }
+                  },
+                  "delete-error": {
+                    "value": {
+                      "error": "Error deleting user"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -239,23 +476,69 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/user_uploadavatar_body"
+                "$ref": "#/components/schemas/user_upload_avatar_body"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_200_object"
+                },
+                "example": {
+                  "message": "Avatar uploaded successfully"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_400_object"
+                },
+                "example": {
+                  "error": "No avatar Uploaded"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                },
+                "examples": {
+                  "internal-error": {
+                    "value": {
+                      "error": "Internal Server Error"
+                    }
+                  },
+                  "upload-error": {
+                    "value": {
+                      "error": "Error uploading avatar"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -282,16 +565,42 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Todo"
+                  "$ref": "#/components/schemas/ListOfTodos"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                },
+                "examples": {
+                  "internal-error": {
+                    "value": {
+                      "error": "Internal Server Error"
+                    }
+                  },
+                  "get-error": {
+                    "value": {
+                      "error": "Error getting todo list"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -322,16 +631,304 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_200_object"
+                },
+                "example": {
+                  "message": "Todo created successfully"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_400_object"
+                },
+                "example": {
+                  "error": "fieldName is required"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                },
+                "examples": {
+                  "unauthorized": {
+                    "value": {
+                      "error": "No auth token provided"
+                    }
+                  },
+                  "invalid-token": {
+                    "value": {
+                      "error": "API access denied! No team access token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                },
+                "examples": {
+                  "internal-error": {
+                    "value": {
+                      "error": "Internal Server Error"
+                    }
+                  },
+                  "create-error": {
+                    "value": {
+                      "error": "Error creating todo"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/todo/{todoId}": {
+      "parameters": [
+        {
+          "name": "todoId",
+          "in": "path",
+          "description": "ID of todo to return",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "todo"
+        ],
+        "summary": "retrieves todo list",
+        "description": "Gets todo list of logged in user",
+        "operationId": "getTodo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "todo"
+        ],
+        "summary": "updates a todo",
+        "description": "Updates a todo",
+        "operationId": "updateTodo",
+        "requestBody": {
+          "description": "Todo details",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TodoEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_200_object"
+                },
+                "example": {
+                  "message": "Todo updated successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_400_object"
+                },
+                "example": {
+                  "error": "fieldName is required"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                },
+                "examples": {
+                  "unauthorized": {
+                    "value": {
+                      "error": "No auth token provided"
+                    }
+                  },
+                  "invalid-token": {
+                    "value": {
+                      "error": "API access denied! No team access token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                },
+                "examples": {
+                  "internal-error": {
+                    "value": {
+                      "error": "Internal Server Error"
+                    }
+                  },
+                  "update-error": {
+                    "value": {
+                      "error": "Error updating todo"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "todo"
+        ],
+        "summary": "deletes a todo",
+        "description": "Deletes a todo",
+        "operationId": "deleteTodo",
+        "requestBody": {
+          "description": "Todo details",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Todo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_200_object"
+                },
+                "example": {
+                  "message": "Todo deleted successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                },
+                "examples": {
+                  "unauthorized": {
+                    "value": {
+                      "error": "No auth token provided"
+                    }
+                  },
+                  "invalid-token": {
+                    "value": {
+                      "error": "API access denied! No team access token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                },
+                "examples": {
+                  "internal-error": {
+                    "value": {
+                      "error": "Internal Server Error"
+                    }
+                  },
+                  "delete-error": {
+                    "value": {
+                      "error": "Error deleting todo"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -367,10 +964,24 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -392,7 +1003,6 @@
           "email",
           "firstName",
           "lastName",
-          "password",
           "userId"
         ],
         "type": "object",
@@ -413,10 +1023,6 @@
           "email": {
             "type": "string",
             "example": "johndoe@example.com"
-          },
-          "password": {
-            "type": "string",
-            "example": "123456"
           },
           "contactNo": {
             "type": "string",
@@ -443,13 +1049,19 @@
           }
         }
       },
+      "ListOfTodos": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Todo"
+        }
+      },
       "Todo": {
         "required": [
           "categoryId",
           "createdDt",
           "dueDt",
-          "isCompleted",
-          "lastModifiedAt",
+          "isComplete",
+          "lastModifiedDt",
           "notes",
           "title",
           "todoId",
@@ -480,11 +1092,11 @@
             "format": "date-time",
             "example": "2023-02-25T10:00:00Z"
           },
-          "isCompleted": {
+          "isComplete": {
             "type": "boolean",
             "example": false
           },
-          "lastModifiedAt": {
+          "lastModifiedDt": {
             "type": "string",
             "format": "date-time",
             "example": "2023-02-25T10:00:00Z"
@@ -497,16 +1109,112 @@
           "categoryId": {
             "type": "string",
             "format": "uuid",
-            "example": "d290f1ee-6c54-4b01-90e6-0d701748f085"
+            "example": "064596AB-85CE-4107-B390-2E3989F7EF40"
           }
         }
       },
-      "inline_response_200": {
+      "TodoEdit": {
+        "required": [
+          "categoryId",
+          "createdDt",
+          "dueDt",
+          "isComplete",
+          "lastModifiedDt",
+          "notes",
+          "title",
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Buy Milk"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Buy 2L of milk"
+          },
+          "createdDt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-02-25T10:00:00Z"
+          },
+          "dueDt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-02-25T10:00:00Z"
+          },
+          "isComplete": {
+            "type": "boolean",
+            "example": false
+          },
+          "lastModifiedDt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-02-25T10:00:00Z"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "064596AB-85CE-4107-B390-2E3989F7EF40"
+          }
+        }
+      },
+      "response_200_object": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "response_201_object": {
         "type": "object",
         "properties": {
           "message": {
             "type": "string",
-            "example": "Welcome to the MADHack ARGO API"
+            "example": "Object created successfully"
+          }
+        }
+      },
+      "response_401_object": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "API access denied! No team access token provided"
+          }
+        }
+      },
+      "response_400_object": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Bad Request"
+          }
+        }
+      },
+      "response_409_object": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Conflict"
+          }
+        }
+      },
+      "response_500_object": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Internal Server Error"
           }
         }
       },
@@ -519,11 +1227,11 @@
           },
           "password": {
             "type": "string",
-            "example": "123456"
+            "example": "password"
           }
         }
       },
-      "user_uploadavatar_body": {
+      "user_upload_avatar_body": {
         "type": "object",
         "properties": {
           "file": {
