@@ -82,11 +82,32 @@ export const updateUser = (req: Request, res: Response, next: NextFunction) => {
     request.input("password", password);
     request.input("contact_no", contactNo);
     request.input("team_id", teamId);
-    request.query('UPDATE user SET first_name=@first_name, last_name=@last_name, email=@email, password=@password, contact_no=@contact_no WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
+    request.query('UPDATE app_user SET first_name=@first_name, last_name=@last_name, email=@email, password=@password, contact_no=@contact_no WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
       if (recordset && !err) {
-        res.status(200).json(recordset.recordsets[0]);
+        res.status(200).json({"message": "User updated successfully"});
       } else {
         res.status(500).json({"message": "Error updating user"});
+      }
+    });
+  } catch (e) {
+    next(createError());
+  }
+}
+
+export const deleteUser = (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.body.user.userId;
+
+  try {
+    const teamId = req.get("X-API-Key") || "";
+
+    let request = new sql.Request();
+    request.input("team_id", teamId);
+    request.input("user_id", userId);
+    request.query('DELETE FROM app_user WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
+      if (recordset && !err) {
+        res.status(200).json({"message": "User deleted successfully"});
+      } else {
+        res.status(500).json({"message": "Error deleting user"});
       }
     });
   } catch (e) {

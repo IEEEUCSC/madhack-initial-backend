@@ -1,9 +1,9 @@
 import express from "express";
-import {getUser, updateUser, uploadAvatar} from "../controllers/userController";
+import {deleteUser, getUser, updateUser, uploadAvatar} from "../controllers/userController";
 
 const router = express.Router();
 
-router.route("/").get(getUser).put(updateUser);
+router.route("/").get(getUser).put(updateUser).delete(deleteUser);
 router.route("/upload-avatar").post(uploadAvatar);
 
 export default router;
