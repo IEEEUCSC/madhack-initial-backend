@@ -8,7 +8,6 @@ import swaggerDocument from "./swagger.json";
 
 // routes
 import apiRouter from "./routes/apiRoutes";
-import indexRouter from "./routes/indexRoutes";
 
 // middleware
 import {errorHandler} from "./middleware/errorHandler";
