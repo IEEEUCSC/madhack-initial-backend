@@ -13,6 +13,7 @@ import apiRouter from "./routes/apiRoutes";
 import {errorHandler} from "./middleware/errorHandler";
 import {verifyTeamId} from "./middleware/teamIdChecker";
 import {fetchTeamIdsFromDB} from "./shared/helper";
+import {limitRequests} from "./middleware/rateLimiter";
 
 env.config();
 
@@ -23,7 +24,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-app.use("/api", verifyTeamId, apiRouter);
+app.use("/api", verifyTeamId, limitRequests, apiRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // database connection

@@ -16,7 +16,7 @@ export const registerUser = (req: Request, res: Response, next: NextFunction) =>
 
   // validate request body with joi
   const schema = Joi.object({
-    userId: Joi.string().required(),
+    userId: Joi.string().uppercase().required(),
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     email: Joi.string().email().required(),
