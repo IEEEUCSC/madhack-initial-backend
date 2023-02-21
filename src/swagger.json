@@ -10,12 +10,12 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3001/api",
-      "description": "Local Server"
-    },
-    {
       "url": "https://agon.madhack.ucscieee.com/api",
       "description": "MADHack Server"
+    },
+    {
+      "url": "http://localhost:3001/api",
+      "description": "Local Server"
     }
   ],
   "security": [
