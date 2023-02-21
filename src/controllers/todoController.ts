@@ -3,19 +3,31 @@ import Joi from "joi";
 import sql, {IResult} from "mssql";
 import Todo from "../models/Todo";
 import createError from "http-errors";
+import joiConf from "../shared/joiConf";
 
 export const getTodos = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
     request.input("user_id", userId);
     request.query('SELECT * FROM todo WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
-        res.status(200).json(recordset.recordsets[0]);
+        const todos = recordset.recordset;
+        res.status(200).json(todos.map((todo) => ({
+          "todoId": todo.todo_id,
+          "title": todo.title,
+          "notes": todo.notes,
+          "createdDt": todo.created_dt,
+          "dueDt": todo.due_dt,
+          "isComplete": todo.is_complete,
+          "lastModifiedDt": todo.last_modified_dt,
+          "categoryId": todo.category_id,
+          "userId": todo.user_id,
+        })));
       } else {
         res.status(500).json({"message": "Error getting todos"});
       }
@@ -27,19 +39,19 @@ export const getTodos = (req: Request, res: Response, next: NextFunction) => {
 
 export const getTodoById = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
-  const {todoId} = req.query;
+  const {todoId} = req.params;
 
   const schema = Joi.object({
     todoId: Joi.string().required()
   });
 
-  const {error} = schema.validate({todoId});
+  const {error} = schema.validate({todoId}, joiConf);
   if (error) {
     return res.status(400).json({error: error.details[0].message});
   }
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
@@ -47,9 +59,23 @@ export const getTodoById = (req: Request, res: Response, next: NextFunction) => 
     request.input("user_id", userId);
     request.query('SELECT * FROM todo WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
-        res.status(200).json(recordset.recordsets[0]);
+        if (recordset.recordset.length === 0) {
+          return next(createError(404, "Todo not found"));
+        }
+        const todo = recordset.recordset[0];
+        res.status(200).json({
+          "todoId": todo.todo_id,
+          "title": todo.title,
+          "notes": todo.notes,
+          "createdDt": todo.created_dt,
+          "dueDt": todo.due_dt,
+          "isComplete": todo.is_complete,
+          "lastModifiedDt": todo.last_modified_dt,
+          "categoryId": todo.category_id,
+          "userId": todo.user_id,
+        });
       } else {
-        res.status(500).json({"message": "Error retrieving todo"});
+        next(createError(500, "Error getting todo"));
       }
     });
   } catch (e) {
@@ -61,36 +87,36 @@ export const getTodoById = (req: Request, res: Response, next: NextFunction) => 
 export const createTodo = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
 
-  const {todoId, title, notes, createdDt, dueDt, isCompleted, lastModifiedDt, categoryId} = req.body;
+  const {todoId, title, notes, createdDt, dueDt, isComplete, lastModifiedDt, categoryId} = req.body;
 
   const schema = Joi.object({
-    todoId: Joi.string().required(),
+    todoId: Joi.string().uppercase().required(),
     title: Joi.string().required(),
     notes: Joi.string().required(),
     createdDt: Joi.string().required(),
     dueDt: Joi.string().required(),
-    isCompleted: Joi.string().required(),
+    isComplete: Joi.boolean().required(),
     lastModifiedDt: Joi.string().required(),
-    categoryId: Joi.string().required(),
+    categoryId: Joi.string().uppercase().required(),
   });
 
   const {error} = schema.validate({
-    todoId,
-    title,
-    notes,
-    createdDt,
-    dueDt,
-    isCompleted,
-    lastModifiedDt,
-    userId,
-    categoryId
-  });
+      todoId,
+      title,
+      notes,
+      createdDt,
+      dueDt,
+      isComplete,
+      lastModifiedDt,
+      categoryId
+    },
+    joiConf);
   if (error) {
     return res.status(400).json({error: error.details[0].message});
   }
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
@@ -99,16 +125,16 @@ export const createTodo = (req: Request, res: Response, next: NextFunction) => {
     request.input("notes", notes);
     request.input("created_dt", createdDt);
     request.input("due_dt", dueDt);
-    request.input("is_completed", isCompleted);
-    request.input("last_modified_dt", lastModifiedDt);
+    request.input("is_complete", isComplete);
     request.input("user_id", userId);
+    request.input("last_modified_dt", lastModifiedDt);
     request.input("category_id", categoryId);
 
-    request.query('INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_completed, last_modified_dt, user_id, category_id, team_id) VALUES (@todo_id, @title, @notes, @created_dt, @due_dt, @is_completed, @last_modified_dt, @user_id, @category_id, @team_id)', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+    request.query('INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_complete, last_modified_dt, user_id, category_id, team_id) VALUES (@todo_id, @title, @notes, @created_dt, @due_dt, @is_complete, @last_modified_dt, @user_id, @category_id, @team_id)', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
         res.status(201).json({"message": "Todo added successfully"});
       } else {
-        next(createError(500, "Error adding todo"));
+        next(createError(500, "Error creating todo"));
       }
     });
   } catch (e) {
@@ -118,36 +144,37 @@ export const createTodo = (req: Request, res: Response, next: NextFunction) => {
 
 export const updateTodo = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
+  const {todoId} = req.params;
 
-  const {todoId, title, notes, createdDt, dueDt, isCompleted, lastModifiedDt, categoryId} = req.body;
+  const {title, notes, createdDt, dueDt, isComplete, lastModifiedDt, categoryId} = req.body;
 
   const schema = Joi.object({
-    todoId: Joi.string().required(),
     title: Joi.string().required(),
     notes: Joi.string().required(),
     createdDt: Joi.string().required(),
     dueDt: Joi.string().required(),
-    isCompleted: Joi.string().required(),
+    isComplete: Joi.boolean().required(),
     lastModifiedDt: Joi.string().required(),
-    categoryId: Joi.string().required(),
+    categoryId: Joi.string().uppercase().required(),
+    todoId: Joi.string().uppercase().required()
   });
 
   const {error} = schema.validate({
-    todoId,
     title,
     notes,
     createdDt,
     dueDt,
-    isCompleted,
+    isComplete,
     lastModifiedDt,
-    categoryId
-  });
+    categoryId,
+    todoId,
+  }, joiConf);
   if (error) {
     return res.status(400).json({error: error.details[0].message});
   }
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
@@ -156,12 +183,12 @@ export const updateTodo = (req: Request, res: Response, next: NextFunction) => {
     request.input("notes", notes);
     request.input("created_dt", createdDt);
     request.input("due_dt", dueDt);
-    request.input("is_completed", isCompleted);
+    request.input("is_complete", isComplete);
     request.input("last_modified_dt", lastModifiedDt);
     request.input("user_id", userId);
     request.input("category_id", categoryId);
 
-    request.query('UPDATE todo SET title=@title, notes=@notes, created_dt=@created_dt, due_dt=@due_dt, is_completed=@is_completed, last_modified_dt=@last_modified_dt, category_id=@category_id WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+    request.query('UPDATE todo SET title=@title, notes=@notes, created_dt=@created_dt, due_dt=@due_dt, is_complete=@is_complete, last_modified_dt=@last_modified_dt, category_id=@category_id WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
         res.status(200).json({"message": "Todo updated successfully"});
       } else {
@@ -174,20 +201,20 @@ export const updateTodo = (req: Request, res: Response, next: NextFunction) => {
 }
 
 export const deleteTodo = (req: Request, res: Response, next: NextFunction) => {
-  const {todoId} = req.query;
+  const {todoId} = req.params;
   const userId = req.body.user.userId;
 
   const schema = Joi.object({
-    todoId: Joi.string().required()
+    todoId: Joi.string().uppercase().required()
   });
 
-  const {error} = schema.validate({todoId});
+  const {error} = schema.validate({todoId}, joiConf);
   if (error) {
     return res.status(400).json({error: error.details[0].message});
   }
 
   try {
-    const teamId = req.get("Team-Token") || "";
+    const teamId = req.get("X-API-Key") || "";
 
     let request = new sql.Request();
     request.input("team_id", teamId);
