@@ -30,11 +30,11 @@ export const addUserToDB = async (user: AppUser): Promise<boolean> => {
   request.input("email", user.email);
   request.input("password", hashedPassword);
   request.input("contact_no", user.contact_no);
+  request.input("avatar_url", user.avatar_url);
   request.input("team_id", user.team_id);
 
-  // TODO add profile picture
   try {
-    const result = await request.query('INSERT INTO app_user (user_id, first_name, last_name, email, password, contact_no, team_id) VALUES (@user_id, @first_name, @last_name, @email, @password, @contact_no, @team_id)');
+    const result = await request.query('INSERT INTO app_user (user_id, first_name, last_name, email, password, contact_no, avatar_url, team_id) VALUES (@user_id, @first_name, @last_name, @email, @password, @contact_no, @avatar_url, @team_id)');
     return result?.rowsAffected[0] === 1;
   } catch (error) {
     // Raises an error when the user submits a UUID that's already in the database

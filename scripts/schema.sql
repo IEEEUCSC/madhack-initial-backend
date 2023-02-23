@@ -38,6 +38,7 @@ IF (NOT EXISTS(SELECT *
             email      VARCHAR(255)     NOT NULL,
             password   VARCHAR(255)     NOT NULL,
             contact_no VARCHAR(255)     NOT NULL,
+            avatar_url VARCHAR(255),
             team_id    UNIQUEIDENTIFIER NOT NULL,
             FOREIGN KEY (team_id) REFERENCES team (team_id)
         );
@@ -51,15 +52,16 @@ IF (NOT EXISTS(SELECT *
         (
             todo_id          UNIQUEIDENTIFIER PRIMARY KEY,
             title            VARCHAR(255)     NOT NULL,
-            notes            TEXT             NOT NULL,
+            notes            TEXT,
             created_dt       DATETIME         NOT NULL,
-            due_dt           DATETIME         NOT NULL,
-            is_complete      BIT              NOT NULL,
+            due_dt           DATETIME,
+            is_reminder_enabled BIT NOT NULL,
+            is_completed      BIT              NOT NULL,
             last_modified_dt DATETIME         NOT NULL,
             user_id          UNIQUEIDENTIFIER NOT NULL,
             category_id      UNIQUEIDENTIFIER NOT NULL,
             team_id          UNIQUEIDENTIFIER NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES app_user (user_id),
+            FOREIGN KEY (user_id) REFERENCES app_user (user_id) ON DELETE CASCADE,
             FOREIGN KEY (category_id) REFERENCES category (category_id),
             FOREIGN KEY (team_id) REFERENCES team (team_id)
         );

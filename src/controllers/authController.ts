@@ -12,7 +12,7 @@ export interface TeamCount {
 }
 
 export const registerUser = (req: Request, res: Response, next: NextFunction) => {
-  const {userId, firstName, lastName, email, password, contactNo} = req.body;
+  const {userId, firstName, lastName, email, password, contactNo, avatarUrl} = req.body;
 
   // validate request body with joi
   const schema = Joi.object({
@@ -22,9 +22,10 @@ export const registerUser = (req: Request, res: Response, next: NextFunction) =>
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
     contactNo: Joi.string().required(),
+    avatarUrl: Joi.string().required().allow(null),
   });
 
-  const {error} = schema.validate({userId, firstName, lastName, email, password, contactNo});
+  const {error} = schema.validate({userId, firstName, lastName, email, password, contactNo, avatarUrl});
   if (error) {
     return res.status(400).json({error: error.details[0].message});
   }
@@ -46,6 +47,7 @@ export const registerUser = (req: Request, res: Response, next: NextFunction) =>
             email: email,
             password: password,
             contact_no: contactNo,
+            avatar_url: avatarUrl,
             team_id: teamId
           })) {
             res.status(201).json({"message": "User registered successfully"});
