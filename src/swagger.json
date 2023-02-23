@@ -6,7 +6,7 @@
     "contact": {
       "email": "ucscieee@gmail.com"
     },
-    "version": "1.0.0"
+    "version": "1.2.0"
   },
   "servers": [
     {
@@ -97,7 +97,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/auth_login_body"
+                "$ref": "#/components/schemas/auth_login_req_body"
+              },
+              "example": {
+                "email": "johndoe@example.com",
+                "password": "123456"
               }
             }
           }
@@ -108,11 +112,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response_200_object"
+                  "$ref": "#/components/schemas/auth_login_res_body"
                 },
                 "example": {
                   "message": "User logged in successfully",
-                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0RTgyMzc3NS05MTBBLTQ4MTEtQTU5NC0wOUI5NTY4MTVGQzEiLCJpYXQiOjE2NzY4ODU4OTAsImV4cCI6MTY3Njg4OTQ5MH0.zgyInY2jeK0MLn8ZWJRKO_ErcZUjzgc3UNRsBXvBRhA"
+                  "token": "ezJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0RTgyMzc3NS05MTBBLTQ4MTEtQTU5NC0wOUI5NTY4MTVGQzEiLCJpYXQiOjE2NzY4ODU4OTAsImV4cCI6MTY3Njg4OTQ5MH0.zgyInY2jeK0MLn8ZWJRKO_ErcZUjzgc3UNRsBXvBRhA"
                 }
               }
             }
@@ -179,7 +183,7 @@
         "description": "Registers a user",
         "operationId": "registerUser",
         "requestBody": {
-          "description": "User auth details",
+          "description": "User details",
           "content": {
             "application/json": {
               "schema": {
@@ -270,7 +274,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppUser"
+                  "$ref": "#/components/schemas/AppUserWithoutPassword"
                 }
               }
             }
@@ -470,13 +474,13 @@
           "user"
         ],
         "summary": "uploads user avatars",
-        "description": "Uploads images to server with multipart form dst",
+        "description": "Uploads images to a S3 bucket and returns the path",
         "operationId": "uploadAvatar",
         "requestBody": {
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/user_upload_avatar_body"
+                "$ref": "#/components/schemas/user_upload_avatar_req_body"
               }
             }
           }
@@ -487,10 +491,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response_200_object"
+                  "$ref": "#/components/schemas/user_upload_avatar_res_body"
                 },
                 "example": {
-                  "message": "Avatar uploaded successfully"
+                  "message": "Image uploaded successfully",
+                  "avatarUrl": "/user-avatars/064596AB-85CE-4107-B390-2E3989F7EF40.png"
                 }
               }
             }
@@ -503,7 +508,7 @@
                   "$ref": "#/components/schemas/response_400_object"
                 },
                 "example": {
-                  "error": "No avatar Uploaded"
+                  "error": "No image selected"
                 }
               }
             }
@@ -769,7 +774,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TodoEdit"
+                "$ref": "#/components/schemas/TodoWithoutId"
               }
             }
           }
@@ -941,6 +946,117 @@
         ]
       }
     },
+    "/todo/{todoId}/status": {
+      "parameters": [
+        {
+          "name": "todoId",
+          "in": "path",
+          "description": "ID of todo to return",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "tags": [
+          "todo"
+        ],
+        "summary": "updates a todo status",
+        "description": "Updates the completion status for a specific todo",
+        "operationId": "updateTodoStatus",
+        "requestBody": {
+          "description": "Todo status",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TodoStatus"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_200_object"
+                },
+                "example": {
+                  "message": "Todo status updated successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_400_object"
+                },
+                "example": {
+                  "error": "isCompleted is required"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_401_object"
+                },
+                "examples": {
+                  "unauthorized": {
+                    "value": {
+                      "error": "No auth token provided"
+                    }
+                  },
+                  "invalid-token": {
+                    "value": {
+                      "error": "API access denied! No team access token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
+                },
+                "examples": {
+                  "internal-error": {
+                    "value": {
+                      "error": "Internal Server Error"
+                    }
+                  },
+                  "update-error": {
+                    "value": {
+                      "error": "Error updating todo"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
     "/category": {
       "get": {
         "tags": [
@@ -999,18 +1115,64 @@
     "schemas": {
       "AppUser": {
         "required": [
-          "contactNo",
-          "email",
+          "userId",
           "firstName",
           "lastName",
-          "userId"
+          "email",
+          "password",
+          "contactNo",
+          "avatarUrl"
         ],
         "type": "object",
         "properties": {
           "userId": {
             "type": "string",
             "format": "uuid",
-            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
+            "example": "D290F1EE-6C54-4B01-90E6-D701748F0851"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "johndoe@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "123456"
+          },
+          "contactNo": {
+            "type": "string",
+            "example": "0712345678"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          }
+        },
+        "description": "A user of the mobile application"
+      },
+      "AppUserWithoutPassword": {
+        "required": [
+          "userId",
+          "firstName",
+          "lastName",
+          "email",
+          "contactNo",
+          "avatarUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "D290F1EE-6C54-4B01-90E6-D701748F0851"
           },
           "firstName": {
             "type": "string",
@@ -1027,6 +1189,11 @@
           "contactNo": {
             "type": "string",
             "example": "0712345678"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "user-avatars/D290F1EE-6C54-4B01-90E6-D701748F0851.png"
           }
         },
         "description": "A user of the mobile application"
@@ -1041,7 +1208,7 @@
           "categoryId": {
             "type": "string",
             "format": "uuid",
-            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
+            "example": "D290F1EE-6C54-4B01-90E6-D701748F0851"
           },
           "categoryName": {
             "type": "string",
@@ -1057,22 +1224,27 @@
       },
       "Todo": {
         "required": [
+          "todoId",
           "categoryId",
+          "title",
+          "notes",
           "createdDt",
           "dueDt",
-          "isComplete",
-          "lastModifiedDt",
-          "notes",
-          "title",
-          "todoId",
-          "userId"
+          "isCompleted",
+          "isReminderEnabled",
+          "lastModifiedDt"
         ],
         "type": "object",
         "properties": {
           "todoId": {
             "type": "string",
             "format": "uuid",
-            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
+            "example": "D290F1EE-6C54-4B01-90E6-D701748F0851"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "064596AB-85CE-4107-B390-2E3989F7EF40"
           },
           "title": {
             "type": "string",
@@ -1092,7 +1264,11 @@
             "format": "date-time",
             "example": "2023-02-25T10:00:00Z"
           },
-          "isComplete": {
+          "isCompleted": {
+            "type": "boolean",
+            "example": false
+          },
+          "isReminderEnabled": {
             "type": "boolean",
             "example": false
           },
@@ -1100,32 +1276,32 @@
             "type": "string",
             "format": "date-time",
             "example": "2023-02-25T10:00:00Z"
-          },
-          "userId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
-          },
-          "categoryId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "064596AB-85CE-4107-B390-2E3989F7EF40"
           }
         }
       },
-      "TodoEdit": {
+      "TodoWithoutId": {
         "required": [
           "categoryId",
+          "title",
+          "notes",
           "createdDt",
           "dueDt",
-          "isComplete",
-          "lastModifiedDt",
-          "notes",
-          "title",
-          "userId"
+          "isCompleted",
+          "isReminderEnabled",
+          "lastModifiedDt"
         ],
         "type": "object",
         "properties": {
+          "todoId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "56F9A317-653F-45C7-A5AD-C3AE1FF9A537"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "064596AB-85CE-4107-B390-2E3989F7EF40"
+          },
           "title": {
             "type": "string",
             "example": "Buy Milk"
@@ -1144,7 +1320,11 @@
             "format": "date-time",
             "example": "2023-02-25T10:00:00Z"
           },
-          "isComplete": {
+          "isCompleted": {
+            "type": "boolean",
+            "example": false
+          },
+          "isReminderEnabled": {
             "type": "boolean",
             "example": false
           },
@@ -1152,16 +1332,18 @@
             "type": "string",
             "format": "date-time",
             "example": "2023-02-25T10:00:00Z"
-          },
-          "userId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
-          },
-          "categoryId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "064596AB-85CE-4107-B390-2E3989F7EF40"
+          }
+        }
+      },
+      "TodoStatus": {
+        "required": [
+          "isCompleted"
+        ],
+        "type": "object",
+        "properties": {
+          "isCompleted": {
+            "type": "boolean",
+            "example": true
           }
         }
       },
@@ -1218,25 +1400,45 @@
           }
         }
       },
-      "auth_login_body": {
+      "auth_login_req_body": {
         "type": "object",
         "properties": {
           "email": {
-            "type": "string",
-            "example": "johndoe@example.com"
+            "type": "string"
           },
           "password": {
-            "type": "string",
-            "example": "password"
+            "type": "string"
           }
         }
       },
-      "user_upload_avatar_body": {
+      "auth_login_res_body": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "user_upload_avatar_req_body": {
         "type": "object",
         "properties": {
           "file": {
             "type": "string",
             "format": "binary"
+          }
+        }
+      },
+      "user_upload_avatar_res_body": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
           }
         }
       }
