@@ -17,7 +17,7 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     const {userId, firstName, lastName, email, password, contactNo, avatarUrl} = req.body;
 
     const schema = Joi.object({
-      userId: Joi.string().uppercase().required(),
+      userId: Joi.string().lowercase().required(),
       firstName: Joi.string().required(),
       lastName: Joi.string().required(),
       email: Joi.string().email().required(),

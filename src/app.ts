@@ -1,10 +1,8 @@
 import express, {Express, NextFunction, Request, Response} from 'express';
 import logger from 'morgan';
-import env from 'dotenv';
 import cors from "cors";
 import fs from "fs";
 import path from "path";
-
 // swagger
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./swagger.json";
@@ -19,8 +17,7 @@ import apiRouter from "./routes/apiRoutes";
 import {errorHandler} from "./middleware/errorHandler";
 import {verifyTeamId} from "./middleware/teamIdChecker";
 import {limitRequests} from "./middleware/rateLimiter";
-
-env.config();
+import {fetchTeamIdsFromDB} from "./shared/helper";
 
 const app: Express = express();
 
@@ -42,6 +39,10 @@ db.connect()
   })
   .then(() => {
     console.log("Database schema created");
+  })
+  .then(fetchTeamIdsFromDB)
+  .then(() => {
+    console.log("Team access tokens fetched");
   })
   .catch((err: Error) => {
     console.log(err);

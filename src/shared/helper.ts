@@ -7,12 +7,24 @@ import AppUser from "../models/AppUser";
 import bcrypt from "bcrypt";
 import {QueryResult} from "pg";
 
-export const fetchTeamIdsFromDB = () => {
+export const fetchTeamIdsFromDB = async () => {
   db.query('SELECT * from team', []).then((res: QueryResult) => {
     res.rows.forEach((team: Team) => {
       tokensList.push(team.team_id.toUpperCase());
     });
   });
+
+  try {
+
+    const result = await db.query('SELECT * from team', []);
+    if (result.rowCount == 0 || result.rows.length == 0)
+      new Error("No teams found");
+    result.rows.forEach((team: Team) => {
+      tokensList.push(team.team_id.toUpperCase());
+    });
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 export const addUserToDB = async (user: AppUser): Promise<boolean> => {
