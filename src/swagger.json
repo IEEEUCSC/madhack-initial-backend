@@ -8,6 +8,10 @@
     },
     "version": "1.0.0"
   },
+  "externalDocs": {
+    "description": "Find out more about MADHack",
+    "url": "https://madhack.ucscieee.com"
+  },
   "servers": [
     {
       "url": "https://agon.madhack.ucscieee.com/api",
@@ -28,6 +32,9 @@
   ],
   "tags": [
     {
+      "name": "default"
+    },
+    {
       "name": "auth",
       "description": "User authentication"
     },
@@ -47,6 +54,9 @@
   "paths": {
     "/": {
       "get": {
+        "tags": [
+          "default"
+        ],
         "description": "Welcome message",
         "responses": {
           "200": {
