@@ -1,4 +1,4 @@
-import { Pool, QueryArrayConfig} from 'pg';
+import {Pool} from 'pg';
 
 const pool = new Pool(
   {
@@ -10,6 +10,7 @@ const pool = new Pool(
   }
 )
 
-module.exports = {
-  query: (text: QueryArrayConfig<any>, params: any) => pool.query(text, params),
+export default {
+  connect: () => pool.connect(),
+  query: (text: string, params: Array<any>) => pool.query(text, params),
 }
