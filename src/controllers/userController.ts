@@ -25,6 +25,7 @@ export const getUser = (req: Request, res: Response, next: NextFunction) => {
           "lastName": user.last_name,
           "email": user.email,
           "contactNo": user.contact_no,
+          "avatarUrl": user.avatar_url,
         });
       } else {
         res.status(500).json({"message": "Error retrieving user"});
@@ -35,6 +36,7 @@ export const getUser = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+// TODO: write to S3 bucket
 export const uploadAvatar = (req: Request, res: Response, next: NextFunction) => {
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -54,7 +56,8 @@ export const uploadAvatar = (req: Request, res: Response, next: NextFunction) =>
     } else if (!req.file) {
       next(createError(400, "No avatar uploaded"));
     } else {
-      res.status(200).json({message: "Avatar uploaded successfully"});
+      // Return the URL of the uploaded avatar in S3 bucket
+      res.status(200).json({message: "Image uploaded successfully", avatarUrl: req.file.path});
     }
   });
 }
@@ -62,7 +65,7 @@ export const uploadAvatar = (req: Request, res: Response, next: NextFunction) =>
 export const updateUser = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
 
-  const {firstName, lastName, email, password, contactNo} = req.body;
+  const {firstName, lastName, email, password, contactNo, avatarUrl} = req.body;
 
   const schema = Joi.object({
     firstName: Joi.string().required(),
@@ -70,9 +73,10 @@ export const updateUser = (req: Request, res: Response, next: NextFunction) => {
     email: Joi.string().email().required(),
     password: Joi.string().required(),
     contactNo: Joi.string().required(),
+    avatarUrl: Joi.string().required().allow(null),
   });
 
-  const {error} = schema.validate({firstName, lastName, email, password, contactNo}, joiConf);
+  const {error} = schema.validate({firstName, lastName, email, password, contactNo, avatarUrl}, joiConf);
   if (error) {
     return res.status(400).json({error: error.details[0].message});
   }
@@ -88,8 +92,9 @@ export const updateUser = (req: Request, res: Response, next: NextFunction) => {
     request.input("email", email);
     request.input("password", password);
     request.input("contact_no", contactNo);
+    request.input("avatar_url", avatarUrl);
     request.input("team_id", teamId);
-    request.query('UPDATE app_user SET first_name=@first_name, last_name=@last_name, email=@email, password=@password, contact_no=@contact_no WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
+    request.query('UPDATE app_user SET first_name=@first_name, last_name=@last_name, email=@email, password=@password, contact_no=@contact_no, avatar_url=@avatar_url WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
       if (recordset && !err) {
         res.status(200).json({"message": "User updated successfully"});
       } else {

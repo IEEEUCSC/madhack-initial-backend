@@ -23,7 +23,8 @@ export const getTodos = (req: Request, res: Response, next: NextFunction) => {
           "notes": todo.notes,
           "createdDt": todo.created_dt,
           "dueDt": todo.due_dt,
-          "isComplete": todo.is_complete,
+          "isReminderEnabled": todo.is_reminder_enabled,
+          "isCompleted": todo.is_completed,
           "lastModifiedDt": todo.last_modified_dt,
           "categoryId": todo.category_id,
           "userId": todo.user_id,
@@ -69,7 +70,8 @@ export const getTodoById = (req: Request, res: Response, next: NextFunction) => 
           "notes": todo.notes,
           "createdDt": todo.created_dt,
           "dueDt": todo.due_dt,
-          "isComplete": todo.is_complete,
+          "isReminderEnabled": todo.is_reminder_enabled,
+          "isCompleted": todo.is_completed,
           "lastModifiedDt": todo.last_modified_dt,
           "categoryId": todo.category_id,
           "userId": todo.user_id,
@@ -87,15 +89,16 @@ export const getTodoById = (req: Request, res: Response, next: NextFunction) => 
 export const createTodo = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
 
-  const {todoId, title, notes, createdDt, dueDt, isComplete, lastModifiedDt, categoryId} = req.body;
+  const {todoId, title, notes, createdDt, dueDt, isReminderEnabled, isCompleted, lastModifiedDt, categoryId} = req.body;
 
   const schema = Joi.object({
     todoId: Joi.string().uppercase().required(),
     title: Joi.string().required(),
-    notes: Joi.string().required(),
+    notes: Joi.string(),
     createdDt: Joi.string().required(),
-    dueDt: Joi.string().required(),
-    isComplete: Joi.boolean().required(),
+    dueDt: Joi.string(),
+    isReminderEnabled: Joi.boolean().required(),
+    isCompleted: Joi.boolean().required(),
     lastModifiedDt: Joi.string().required(),
     categoryId: Joi.string().uppercase().required(),
   });
@@ -106,7 +109,8 @@ export const createTodo = (req: Request, res: Response, next: NextFunction) => {
       notes,
       createdDt,
       dueDt,
-      isComplete,
+      isReminderEnabled,
+      isCompleted,
       lastModifiedDt,
       categoryId
     },
@@ -125,12 +129,13 @@ export const createTodo = (req: Request, res: Response, next: NextFunction) => {
     request.input("notes", notes);
     request.input("created_dt", createdDt);
     request.input("due_dt", dueDt);
-    request.input("is_complete", isComplete);
+    request.input("is_reminder_enabled", isReminderEnabled);
+    request.input("is_completed", isCompleted);
     request.input("user_id", userId);
     request.input("last_modified_dt", lastModifiedDt);
     request.input("category_id", categoryId);
 
-    request.query('INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_complete, last_modified_dt, user_id, category_id, team_id) VALUES (@todo_id, @title, @notes, @created_dt, @due_dt, @is_complete, @last_modified_dt, @user_id, @category_id, @team_id)', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+    request.query('INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_reminder_enabled, is_completed, last_modified_dt, user_id, category_id, team_id) VALUES (@todo_id, @title, @notes, @created_dt, @due_dt, @is_reminder_enabled, @is_completed, @last_modified_dt, @user_id, @category_id, @team_id)', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
         res.status(201).json({"message": "Todo added successfully"});
       } else {
@@ -146,14 +151,15 @@ export const updateTodo = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.body.user.userId;
   const {todoId} = req.params;
 
-  const {title, notes, createdDt, dueDt, isComplete, lastModifiedDt, categoryId} = req.body;
+  const {title, notes, createdDt, dueDt, isReminderEnabled, isCompleted, lastModifiedDt, categoryId} = req.body;
 
   const schema = Joi.object({
     title: Joi.string().required(),
-    notes: Joi.string().required(),
+    notes: Joi.string(),
     createdDt: Joi.string().required(),
-    dueDt: Joi.string().required(),
-    isComplete: Joi.boolean().required(),
+    dueDt: Joi.string(),
+    isReminderEnabled: Joi.boolean().required(),
+    isCompleted: Joi.boolean().required(),
     lastModifiedDt: Joi.string().required(),
     categoryId: Joi.string().uppercase().required(),
     todoId: Joi.string().uppercase().required()
@@ -164,7 +170,8 @@ export const updateTodo = (req: Request, res: Response, next: NextFunction) => {
     notes,
     createdDt,
     dueDt,
-    isComplete,
+    isReminderEnabled,
+    isCompleted,
     lastModifiedDt,
     categoryId,
     todoId,
@@ -183,13 +190,17 @@ export const updateTodo = (req: Request, res: Response, next: NextFunction) => {
     request.input("notes", notes);
     request.input("created_dt", createdDt);
     request.input("due_dt", dueDt);
-    request.input("is_complete", isComplete);
+    request.input("is_reminder_enabled", isReminderEnabled);
+    request.input("is_completed", isCompleted);
     request.input("last_modified_dt", lastModifiedDt);
     request.input("user_id", userId);
     request.input("category_id", categoryId);
 
-    request.query('UPDATE todo SET title=@title, notes=@notes, created_dt=@created_dt, due_dt=@due_dt, is_complete=@is_complete, last_modified_dt=@last_modified_dt, category_id=@category_id WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+    request.query('UPDATE todo SET title=@title, notes=@notes, created_dt=@created_dt, due_dt=@due_dt, is_completed=@is_completed, last_modified_dt=@last_modified_dt, category_id=@category_id WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
       if (recordset && !err) {
+        if (recordset.rowsAffected[0] === 0) {
+          return next(createError(404, "Todo not found"));
+        }
         res.status(200).json({"message": "Todo updated successfully"});
       } else {
         next(createError(500, "Error updating todo"));
@@ -231,3 +242,42 @@ export const deleteTodo = (req: Request, res: Response, next: NextFunction) => {
     next(createError());
   }
 }
+
+export const updateTodoStatus = (req: Request, res: Response, next: NextFunction) => {
+  const {todoId} = req.params;
+  const {isCompleted} = req.body;
+  const userId = req.body.user.userId;
+
+  const schema = Joi.object({
+    todoId: Joi.string().uppercase().required(),
+    isCompleted: Joi.boolean().required()
+  });
+
+  const {error} = schema.validate({todoId, isCompleted}, joiConf);
+  if (error) {
+    return res.status(400).json({error: error.details[0].message});
+  }
+
+  try {
+    const teamId = req.get("X-API-Key") || "";
+
+    let request = new sql.Request();
+    request.input("team_id", teamId);
+    request.input("todo_id", todoId);
+    request.input("is_completed", isCompleted);
+    request.input("user_id", userId);
+    request.query('UPDATE todo SET is_completed=@is_completed WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
+      if (recordset && !err) {
+        if (recordset.rowsAffected[0] === 0) {
+          return next(createError(404, "Todo not found"));
+        }
+        res.status(200).json({"message": "Todo status updated successfully"});
+      } else {
+        next(createError(500, "Error updating todo status"));
+      }
+    });
+  } catch (e) {
+    next(createError());
+  }
+}
+
