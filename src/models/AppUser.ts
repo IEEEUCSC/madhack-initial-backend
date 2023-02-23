@@ -5,5 +5,6 @@ export default interface AppUser {
     email: string;
     password: string;
     contact_no: string;
+    avatar_url: string | null;
     team_id: string;
 }
