@@ -261,7 +261,7 @@
                   "$ref": "#/components/schemas/response_409_object"
                 },
                 "example": {
-                  "error": "User already exists"
+                  "error": "Email already exists"
                 }
               }
             }
@@ -354,7 +354,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AppUser"
+                "$ref": "#/components/schemas/AppUserWithoutPasswordAndId"
               }
             }
           }
@@ -659,12 +659,12 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response_200_object"
+                  "$ref": "#/components/schemas/response_201_object"
                 },
                 "example": {
                   "message": "Todo created successfully"
@@ -1222,6 +1222,40 @@
         },
         "description": "A user of the mobile application"
       },
+      "AppUserWithoutPasswordAndId": {
+        "required": [
+          "firstName",
+          "lastName",
+          "email",
+          "contactNo",
+          "avatarUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "johndoe@example.com"
+          },
+          "contactNo": {
+            "type": "string",
+            "example": "0712345678"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "user-avatars/d290f1ee-6c54-4b01-90e6-d701748f0851.png"
+          }
+        },
+        "description": "A user of the mobile application"
+      },
       "Category": {
         "required": [
           "categoryId",
@@ -1316,11 +1350,6 @@
         ],
         "type": "object",
         "properties": {
-          "todoId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "56f9a317-653f-45c7-a5ad-c3ae1ff9a537"
-          },
           "categoryId": {
             "type": "string",
             "format": "uuid",

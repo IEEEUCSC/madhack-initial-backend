@@ -12,9 +12,10 @@ export const getTodos = async (req: Request, res: Response, next: NextFunction) 
 
     const teamId = req.get("X-API-Key") || "";
 
-    const result = await db.query('SELECT * FROM todo WHERE user_id=$1 AND team_id=$2', [teamId, userId]);
+    const result = await db.query('SELECT * FROM todo WHERE user_id=$1 AND team_id=$2', [userId, teamId]);
+    console.log(result.rows[0].created_dt);
     if (result.rowCount === 0 || result.rows.length === 0)
-      createError(404, "No todos found");
+      return res.status(200).json([]);
 
     const todos = result.rows.map((todo: Todo) => ({
       "todoId": todo.todo_id,
@@ -47,13 +48,13 @@ export const getTodoById = async (req: Request, res: Response, next: NextFunctio
 
     const {error} = schema.validate({todoId}, joiConf);
     if (error)
-      createError(400, error.details[0].message);
+      return next(createError(400, error.details[0].message));
 
     const teamId = req.get("X-API-Key") || "";
     const result: QueryResult<Todo> = await db.query('SELECT * FROM todo WHERE todo_id=$1 AND team_id=$2 AND user_id=$3', [todoId, teamId, userId]);
 
     if (result.rowCount === 0 || result.rows.length === 0)
-      createError(404, "Todo not found");
+      return next(createError(404, "Todo not found"));
 
     const todo = result.rows[0];
     res.status(200).json({
@@ -65,8 +66,7 @@ export const getTodoById = async (req: Request, res: Response, next: NextFunctio
       "isReminderEnabled": todo.is_reminder_enabled,
       "isCompleted": todo.is_completed,
       "lastModifiedDt": todo.last_modified_dt,
-      "categoryId": todo.category_id,
-      "userId": todo.user_id,
+      "categoryId": todo.category_id
     });
 
   } catch (error) {
@@ -116,20 +116,20 @@ export const createTodo = async (req: Request, res: Response, next: NextFunction
       },
       joiConf);
     if (error)
-      createError(400, error.details[0].message);
+      return next(createError(400, error.details[0].message));
 
     const teamId = req.get("X-API-Key") || "";
 
-    const params = [todoId, title, notes, createdDt, dueDt, isReminderEnabled, isReminderEnabled, isCompleted, lastModifiedDt, userId, categoryId, teamId];
+    const params = [todoId, title, notes, createdDt, dueDt, isReminderEnabled, isCompleted, lastModifiedDt, userId, categoryId, teamId];
     const result: QueryResult<Todo> = await db.query('INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_reminder_enabled, is_completed, last_modified_dt, user_id, category_id, team_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', params);
 
     if (result.rowCount === 0)
-      createError(500, "Error creating todo");
+      return next(createError(500, "Error creating todo"));
 
     res.status(201).json({"message": "Todo added successfully"});
 
   } catch (error) {
-    next();
+    next(error);
   }
 }
 
@@ -164,15 +164,15 @@ export const updateTodo = async (req: Request, res: Response, next: NextFunction
       todoId,
     }, joiConf);
     if (error) {
-      createError(400, error.details[0].message);
+      return next(createError(400, error.details[0].message));
     }
 
     const teamId = req.get("X-API-Key") || "";
 
-    const params = [title, notes, createdDt, dueDt, isReminderEnabled, isReminderEnabled, isCompleted, lastModifiedDt, userId, categoryId, teamId, todoId]
-    const result: QueryResult<Todo> = await db.query('UPDATE todo SET title=$1, notes=$2, created_dt=$3, due_dt=$4, is_reminder_enabled=$5, is_completed=$6, last_modified_dt=$7, user_id=$8, category_id=$9, team_id=$10 WHERE todo_id=$11', params);
+    const params = [title, notes, createdDt, dueDt, isReminderEnabled, isCompleted, lastModifiedDt, categoryId, todoId, teamId, userId];
+    const result: QueryResult<Todo> = await db.query('UPDATE todo SET title=$1, notes=$2, created_dt=$3, due_dt=$4, is_reminder_enabled=$5, is_completed=$6, last_modified_dt=$7, category_id=$8 WHERE todo_id=$9 AND team_id=$10 AND user_id=$11', params);
     if (result.rowCount === 0)
-      createError(404, "Todo not found");
+      return next(createError(404, "Todo not found"));
 
     res.status(200).json({"message": "Todo updated successfully"});
 
@@ -194,11 +194,11 @@ export const deleteTodo = async (req: Request, res: Response, next: NextFunction
 
     const {error} = schema.validate({todoId}, joiConf);
     if (error)
-      createError(400, error.details[0].message);
+      return next(createError(400, error.details[0].message));
 
     const result: QueryResult<Todo> = await db.query('DELETE FROM todo WHERE todo_id=$1 AND team_id=$2 AND user_id=$3', [todoId, teamId, userId]);
     if (result.rowCount === 0)
-      createError(404, "Todo not found");
+      return next(createError(404, "Todo not found"));
 
     res.status(200).json({"message": "Todo deleted successfully"});
   } catch (error) {
@@ -219,13 +219,13 @@ export const updateTodoStatus = async (req: Request, res: Response, next: NextFu
 
     const {error} = schema.validate({todoId, isCompleted}, joiConf);
     if (error)
-      createError(error.details[0].message);
+      return next(createError(error.details[0].message));
 
     const teamId = req.get("X-API-Key") || "";
 
     const result: QueryResult<Todo> = await db.query('UPDATE todo SET is_completed=$1 WHERE todo_id=$2 AND team_id=$3 AND user_id=$4', [isCompleted, todoId, teamId, userId]);
     if (result.rowCount === 0)
-      createError(404, "Todo not found");
+      return next(createError(404, "Todo not found"));
 
     res.status(200).json({"message": "Todo status updated successfully"});
   } catch (error) {

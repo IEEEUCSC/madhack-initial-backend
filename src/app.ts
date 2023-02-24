@@ -1,8 +1,6 @@
 import express, {Express, NextFunction, Request, Response} from 'express';
 import logger from 'morgan';
 import cors from "cors";
-import fs from "fs";
-import path from "path";
 // swagger
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./swagger.json";
@@ -34,12 +32,10 @@ db.connect()
   .then(() => {
     console.log("Database connected");
     // Read sql file and execute it
-    const sqlFile = fs.readFileSync(path.resolve(__dirname, '../scripts/schema.sql')).toString();
-    return db.query(sqlFile, [])
   })
-  .then(() => {
-    console.log("Database schema created");
-  })
+  // .then(() => {
+  //   console.log("Database schema created");
+  // })
   .then(fetchTeamIdsFromDB)
   .then(() => {
     console.log("Team access tokens fetched");

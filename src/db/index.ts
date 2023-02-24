@@ -16,4 +16,5 @@ const pool = new Pool(
 export default {
   connect: () => pool.connect(),
   query: (text: string, params: Array<any>) => pool.query(text, params),
+  close: () => pool.end()
 }
