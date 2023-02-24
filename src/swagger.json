@@ -11,7 +11,11 @@
   "servers": [
     {
       "url": "https://agon.madhack.ucscieee.com/api",
-      "description": "MADHack Server"
+      "description": "Agon Server"
+    },
+    {
+      "url": "https://backup.agon.madhack.ucscieee.com/api",
+      "description": "Agon Backup Server"
     },
     {
       "url": "http://localhost:3001/api",
