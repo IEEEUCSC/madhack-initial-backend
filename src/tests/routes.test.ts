@@ -67,106 +67,109 @@ let user = {
   "avatarUrl": null
 }
 
-describe("User Registration", () => {
-  it("should return 201", async () => {
-    const res = await request(apiUrl)
-      .post("/auth/register")
-      .set("X-API-Key", teamToken)
-      .send(user)
-    expect(res.statusCode).toEqual(201);
+describe("User", () => {
+  describe("User Registration", () => {
+    it("should return 201", async () => {
+      const res = await request(apiUrl)
+        .post("/auth/register")
+        .set("X-API-Key", teamToken)
+        .send(user)
+      expect(res.statusCode).toEqual(201);
+    });
+
+    it("should return 409", async () => {
+      const res = await request(apiUrl)
+        .post(`/auth/register`)
+        .set("X-API-Key", teamToken)
+        .send(user)
+      expect(res.statusCode).toEqual(409);
+      expect(res.body).toHaveProperty("error");
+    });
+
+    it("should return 400", async () => {
+      const res = await request(apiUrl)
+        .post(`/auth/register`)
+        .set("X-API-Key", teamToken)
+        .send({
+          "userId": uuid_v4().toString(),
+          "firstName": "John",
+          "lastName": "Doe",
+          "email": "johndoe2@example.com"
+        })
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty("error");
+    });
+  })
+
+  describe("User Login", () => {
+    it("should return 200", async () => {
+      const res = await request(apiUrl)
+        .post(`/auth/login`)
+        .set("X-API-Key", teamToken)
+        .send({
+          "email": user.email,
+          "password": user.password
+        })
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty("token");
+      bearerToken = res.body.token;
+    });
+
+    it("should return 401", async () => {
+      const res = await request(apiUrl)
+        .post(`/auth/login`)
+        .set("X-API-Key", teamToken)
+        .send({
+          "email": user.email,
+          "password": "invalid"
+        })
+      expect(res.statusCode).toEqual(401);
+      expect(res.body).toHaveProperty("error");
+    });
+
+    it("should return 400", async () => {
+      const res = await request(apiUrl)
+        .post(`/auth/login`)
+        .set("X-API-Key", teamToken)
+        .send({
+          "email": user.email
+        })
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty("error");
+    });
   });
 
-  it("should return 409", async () => {
-    const res = await request(apiUrl)
-      .post(`/auth/register`)
-      .set("X-API-Key", teamToken)
-      .send(user)
-    expect(res.statusCode).toEqual(409);
-    expect(res.body).toHaveProperty("error");
-  });
+  describe("User Profile", () => {
+    it("should return 200", async () => {
+      const res = await request(apiUrl)
+        .get(`/user`)
+        .set("X-API-Key", teamToken)
+        .set("Authorization", `Bearer ${bearerToken}`)
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty("userId");
+      expect(res.body).toHaveProperty("firstName");
+      expect(res.body).toHaveProperty("lastName");
+      expect(res.body).toHaveProperty("email");
+      expect(res.body).toHaveProperty("contactNo");
+      expect(res.body).toHaveProperty("avatarUrl");
+    });
 
-  it("should return 400", async () => {
-    const res = await request(apiUrl)
-      .post(`/auth/register`)
-      .set("X-API-Key", teamToken)
-      .send({
-        "userId": uuid_v4().toString(),
-        "firstName": "John",
-        "lastName": "Doe",
-        "email": "johndoe2@example.com"
-      })
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toHaveProperty("error");
-  });
-})
-
-describe("User Login", () => {
-  it("should return 200", async () => {
-    const res = await request(apiUrl)
-      .post(`/auth/login`)
-      .set("X-API-Key", teamToken)
-      .send({
-        "email": user.email,
-        "password": user.password
-      })
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty("token");
-    bearerToken = res.body.token;
-  });
-
-  it("should return 401", async () => {
-    const res = await request(apiUrl)
-      .post(`/auth/login`)
-      .set("X-API-Key", teamToken)
-      .send({
-        "email": user.email,
-        "password": "invalid"
-      })
-    expect(res.statusCode).toEqual(401);
-    expect(res.body).toHaveProperty("error");
-  });
-
-  it("should return 400", async () => {
-    const res = await request(apiUrl)
-      .post(`/auth/login`)
-      .set("X-API-Key", teamToken)
-      .send({
-        "email": user.email
-      })
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toHaveProperty("error");
+    it("should return 200", async () => {
+      await request(apiUrl)
+        .put(`/user`)
+        .set("X-API-Key", teamToken)
+        .set("Authorization", `Bearer ${bearerToken}`)
+        .send({
+          "firstName": "Jane",
+          "lastName": "Doe",
+          "email": "janedoe@example.com",
+          "contactNo": "0712345678",
+          "avatarUrl": null
+        });
+    });
   });
 });
 
-describe("User Profile", () => {
-  it("should return 200", async () => {
-    const res = await request(apiUrl)
-      .get(`/user`)
-      .set("X-API-Key", teamToken)
-      .set("Authorization", `Bearer ${bearerToken}`)
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty("userId");
-    expect(res.body).toHaveProperty("firstName");
-    expect(res.body).toHaveProperty("lastName");
-    expect(res.body).toHaveProperty("email");
-    expect(res.body).toHaveProperty("contactNo");
-    expect(res.body).toHaveProperty("avatarUrl");
-  });
-
-  it("should return 200", async () => {
-    const res = await request(apiUrl)
-      .put(`/user`)
-      .set("X-API-Key", teamToken)
-      .set("Authorization", `Bearer ${bearerToken}`)
-      .send({
-        "firstName": "Jane",
-        "lastName": "Doe",
-        "email": "janedoe@example.com",
-        "contactNo": "0712345678",
-        "avatarUrl": null
-      });
-  });
-});
 describe("Categories", () => {
   it("should return 200", async () => {
     const res = await request(apiUrl)
@@ -208,9 +211,9 @@ describe("Todos", () => {
           "categoryId": categories[0].categoryId,
           "title": "Test Todo",
           "notes": "Test Notes",
-          "createdDt": "2021-01-01T00:00:00.000Z",
-          "dueDt": "2021-01-01T00:00:00.000Z",
-          "lastModifiedDt": "2021-01-01T00:00:00.000Z",
+          "createdDt": "2021-01-01 00:00:00",
+          "dueDt": "2021-01-01 00:00:00",
+          "lastModifiedDt": "2021-01-01 00:00:00",
           "isCompleted": false,
           "isReminderEnabled": true
         });
@@ -227,9 +230,9 @@ describe("Todos", () => {
           "categoryId": categories[0].categoryId,
           "title": "Test Todo 2",
           "notes": "Test Notes 2",
-          "createdDt": "2021-01-01T00:00:00.000Z",
-          "dueDt": "2021-01-01T00:00:00.000Z",
-          "lastModifiedDt": "2021-01-01T00:00:00.000Z",
+          "createdDt": "2021-01-01 00:00:00",
+          "dueDt": "2021-01-01 00:00:00",
+          "lastModifiedDt": "2021-01-01 00:00:00",
           "isCompleted": false,
           "isReminderEnabled": true
         });
@@ -272,9 +275,9 @@ describe("Todos", () => {
           "categoryId": categories[0].categoryId,
           "title": "Test Todo",
           "notes": "Test Notes",
-          "createdDt": "2021-01-01T00:00:00.000Z",
-          "dueDt": "2021-01-01T00:00:00.000Z",
-          "lastModifiedDt": "2021-01-01T00:00:00.000Z",
+          "createdDt": "2021-01-01 00:00:00",
+          "dueDt": "2021-01-01 00:00:00",
+          "lastModifiedDt": "2021-01-01 00:00:00",
           "isCompleted": true,
           "isReminderEnabled": true
         });
@@ -301,12 +304,32 @@ describe("Todos", () => {
         "categoryId": categories[0].categoryId,
         "title": "Test Todo",
         "notes": "Test Notes",
-        "createdDt": "2021-01-01T00:00:00.000Z",
-        "dueDt": "2021-01-01T00:00:00.000Z",
-        "lastModifiedDt": "2021-01-01T00:00:00.000Z",
+        "createdDt": "2021-01-01 00:00:00",
+        "dueDt": "2021-01-01 00:00:00",
+        "lastModifiedDt": "2021-01-01 00:00:00",
         "isCompleted": true,
         "isReminderEnabled": true
       });
+    });
+  });
+
+  describe("Delete Todo", () => {
+    it("should return 200", async () => {
+      const res = await request(apiUrl)
+        .delete(`/todo/${todos[0].todoId}`)
+        .set("X-API-Key", teamToken)
+        .set("Authorization", `Bearer ${bearerToken}`)
+      expect(res.statusCode).toEqual(200);
+    });
+
+    it("should return 200", async () => {
+      const res = await request(apiUrl)
+        .get(`/todo`)
+        .set("X-API-Key", teamToken)
+        .set("Authorization", `Bearer ${bearerToken}`)
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toBeInstanceOf(Array);
+      expect(res.body.length).toBe(1);
     });
   });
 });

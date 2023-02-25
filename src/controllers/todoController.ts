@@ -4,6 +4,7 @@ import Todo from "../models/Todo";
 import createError from "http-errors";
 import joiConf from "../shared/joiConf";
 import db from "../db";
+import moment from "moment";
 import {QueryResult} from "pg";
 
 export const getTodos = async (req: Request, res: Response, next: NextFunction) => {
@@ -13,7 +14,6 @@ export const getTodos = async (req: Request, res: Response, next: NextFunction) 
     const teamId = req.get("X-API-Key") || "";
 
     const result = await db.query('SELECT * FROM todo WHERE user_id=$1 AND team_id=$2', [userId, teamId]);
-    console.log(result.rows[0].created_dt);
     if (result.rowCount === 0 || result.rows.length === 0)
       return res.status(200).json([]);
 
@@ -21,11 +21,11 @@ export const getTodos = async (req: Request, res: Response, next: NextFunction) 
       "todoId": todo.todo_id,
       "title": todo.title,
       "notes": todo.notes,
-      "createdDt": todo.created_dt,
-      "dueDt": todo.due_dt,
+      "createdDt": moment(todo.created_dt).format("YYYY-MM-DD HH:mm:ss"),
+      "dueDt": moment(todo.due_dt).format("YYYY-MM-DD HH:mm:ss"),
       "isReminderEnabled": todo.is_reminder_enabled,
       "isCompleted": todo.is_completed,
-      "lastModifiedDt": todo.last_modified_dt,
+      "lastModifiedDt": moment(todo.last_modified_dt).format("YYYY-MM-DD HH:mm:ss"),
       "categoryId": todo.category_id,
       "userId": todo.user_id,
     }));
@@ -61,11 +61,11 @@ export const getTodoById = async (req: Request, res: Response, next: NextFunctio
       "todoId": todo.todo_id,
       "title": todo.title,
       "notes": todo.notes,
-      "createdDt": todo.created_dt,
-      "dueDt": todo.due_dt,
+      "createdDt": moment(todo.created_dt).format("YYYY-MM-DD HH:mm:ss"),
+      "dueDt": moment(todo.due_dt).format("YYYY-MM-DD HH:mm:ss"),
       "isReminderEnabled": todo.is_reminder_enabled,
       "isCompleted": todo.is_completed,
-      "lastModifiedDt": todo.last_modified_dt,
+      "lastModifiedDt": moment(todo.last_modified_dt).format("YYYY-MM-DD HH:mm:ss"),
       "categoryId": todo.category_id
     });
 
@@ -121,7 +121,7 @@ export const createTodo = async (req: Request, res: Response, next: NextFunction
     const teamId = req.get("X-API-Key") || "";
 
     const params = [todoId, title, notes, createdDt, dueDt, isReminderEnabled, isCompleted, lastModifiedDt, userId, categoryId, teamId];
-    const result: QueryResult<Todo> = await db.query('INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_reminder_enabled, is_completed, last_modified_dt, user_id, category_id, team_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', params);
+    const result: QueryResult<Todo> = await db.query("INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_reminder_enabled, is_completed, last_modified_dt, user_id, category_id, team_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)", params);
 
     if (result.rowCount === 0)
       return next(createError(500, "Error creating todo"));
