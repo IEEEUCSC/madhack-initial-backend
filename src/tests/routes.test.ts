@@ -267,7 +267,6 @@ describe("Todos", () => {
     });
   });
 
-  // TODO fix timestamp mismatch
   describe("Update Todo", () => {
     it("should return 200", async () => {
       const res = await request(app)
@@ -335,13 +334,8 @@ describe("Todos", () => {
       expect(res.body.length).toBe(1);
     });
   });
+
+  // TODO add tests for update TODO and error cases for TODO
 });
 
-// afterAll(async () => {
-// try {
-//   await db.end();
-// } catch (error) {
-//   console.log(error);
-// }
-// });
 afterAll(() => new Promise(r => setTimeout(r, 0)))
