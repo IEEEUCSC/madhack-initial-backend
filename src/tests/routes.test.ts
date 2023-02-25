@@ -7,9 +7,7 @@ import db from "../db";
 
 dotenv.config();
 
-const url = process.env.BASE_URL || "http://localhost";
-const port = process.env.PORT || 3001;
-const baseUrl = `${url}:${port}`;
+const baseUrl = process.env.BASE_URL || "http://localhost:3001";
 
 const apiUrl = baseUrl + "/api";
 
