@@ -6,7 +6,7 @@ import {tokensList} from "../shared/variables";
 export const verifyTeamId = (req: Request, res: Response, next: NextFunction) => {
   let token = req.get("X-API-Key");
   if (token) {
-    if (tokensList.includes(token.toUpperCase())) {
+    if (tokensList.includes(token)) {
       next();
     } else {
       next(createError(403, "Invalid team access token"));

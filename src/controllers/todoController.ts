@@ -1,109 +1,85 @@
 import {NextFunction, Request, Response} from "express";
 import Joi from "joi";
-import sql, {IResult} from "mssql";
 import Todo from "../models/Todo";
 import createError from "http-errors";
 import joiConf from "../shared/joiConf";
+import db from "../db";
+import moment from "moment";
+import {QueryResult} from "pg";
 
-export const getTodos = (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.body.user.userId;
-
+export const getTodos = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = req.body.user.userId;
+
     const teamId = req.get("X-API-Key") || "";
 
-    let request = new sql.Request();
-    request.input("team_id", teamId);
-    request.input("user_id", userId);
-    request.query('SELECT * FROM todo WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
-      if (recordset && !err) {
-        const todos = recordset.recordset;
-        res.status(200).json(todos.map((todo) => ({
-          "todoId": todo.todo_id,
-          "title": todo.title,
-          "notes": todo.notes,
-          "createdDt": todo.created_dt,
-          "dueDt": todo.due_dt,
-          "isReminderEnabled": todo.is_reminder_enabled,
-          "isCompleted": todo.is_completed,
-          "lastModifiedDt": todo.last_modified_dt,
-          "categoryId": todo.category_id,
-          "userId": todo.user_id,
-        })));
-      } else {
-        res.status(500).json({"message": "Error getting todos"});
-      }
-    });
-  } catch (e) {
-    next(createError());
+    const result = await db.query('SELECT * FROM todo WHERE user_id=$1 AND team_id=$2', [userId, teamId]);
+    if (result.rowCount === 0 || result.rows.length === 0)
+      return res.status(200).json([]);
+
+    const todos = result.rows.map((todo: Todo) => ({
+      "todoId": todo.todo_id,
+      "title": todo.title,
+      "notes": todo.notes,
+      "createdDt": moment(todo.created_dt).format("YYYY-MM-DD HH:mm:ss"),
+      "dueDt": moment(todo.due_dt).format("YYYY-MM-DD HH:mm:ss"),
+      "isReminderEnabled": todo.is_reminder_enabled,
+      "isCompleted": todo.is_completed,
+      "lastModifiedDt": moment(todo.last_modified_dt).format("YYYY-MM-DD HH:mm:ss"),
+      "categoryId": todo.category_id,
+      "userId": todo.user_id,
+    }));
+
+    res.status(200).json(todos);
+  } catch (error) {
+    next(error);
   }
 }
 
-export const getTodoById = (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.body.user.userId;
-  const {todoId} = req.params;
-
-  const schema = Joi.object({
-    todoId: Joi.string().required()
-  });
-
-  const {error} = schema.validate({todoId}, joiConf);
-  if (error) {
-    return res.status(400).json({error: error.details[0].message});
-  }
-
+export const getTodoById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const teamId = req.get("X-API-Key") || "";
 
-    let request = new sql.Request();
-    request.input("team_id", teamId);
-    request.input("todo_id", todoId);
-    request.input("user_id", userId);
-    request.query('SELECT * FROM todo WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
-      if (recordset && !err) {
-        if (recordset.recordset.length === 0) {
-          return next(createError(404, "Todo not found"));
-        }
-        const todo = recordset.recordset[0];
-        res.status(200).json({
-          "todoId": todo.todo_id,
-          "title": todo.title,
-          "notes": todo.notes,
-          "createdDt": todo.created_dt,
-          "dueDt": todo.due_dt,
-          "isReminderEnabled": todo.is_reminder_enabled,
-          "isCompleted": todo.is_completed,
-          "lastModifiedDt": todo.last_modified_dt,
-          "categoryId": todo.category_id,
-          "userId": todo.user_id,
-        });
-      } else {
-        next(createError(500, "Error getting todo"));
-      }
+    const userId = req.body.user.userId;
+    const {todoId} = req.params;
+
+    const schema = Joi.object({
+      todoId: Joi.string().required()
     });
-  } catch (e) {
-    next(createError());
+
+    const {error} = schema.validate({todoId}, joiConf);
+    if (error)
+      return next(createError(400, error.details[0].message));
+
+    const teamId = req.get("X-API-Key") || "";
+    const result: QueryResult<Todo> = await db.query('SELECT * FROM todo WHERE todo_id=$1 AND team_id=$2 AND user_id=$3', [todoId, teamId, userId]);
+
+    if (result.rowCount === 0 || result.rows.length === 0)
+      return next(createError(404, "Todo not found"));
+
+    const todo = result.rows[0];
+    res.status(200).json({
+      "todoId": todo.todo_id,
+      "title": todo.title,
+      "notes": todo.notes,
+      "createdDt": moment(todo.created_dt).format("YYYY-MM-DD HH:mm:ss"),
+      "dueDt": moment(todo.due_dt).format("YYYY-MM-DD HH:mm:ss"),
+      "isReminderEnabled": todo.is_reminder_enabled,
+      "isCompleted": todo.is_completed,
+      "lastModifiedDt": moment(todo.last_modified_dt).format("YYYY-MM-DD HH:mm:ss"),
+      "categoryId": todo.category_id
+    });
+
+  } catch (error) {
+    next(error);
   }
 }
 
 
-export const createTodo = (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.body.user.userId;
+export const createTodo = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.body.user.userId;
 
-  const {todoId, title, notes, createdDt, dueDt, isReminderEnabled, isCompleted, lastModifiedDt, categoryId} = req.body;
-
-  const schema = Joi.object({
-    todoId: Joi.string().uppercase().required(),
-    title: Joi.string().required(),
-    notes: Joi.string(),
-    createdDt: Joi.string().required(),
-    dueDt: Joi.string(),
-    isReminderEnabled: Joi.boolean().required(),
-    isCompleted: Joi.boolean().required(),
-    lastModifiedDt: Joi.string().required(),
-    categoryId: Joi.string().uppercase().required(),
-  });
-
-  const {error} = schema.validate({
+    const {
       todoId,
       title,
       notes,
@@ -113,171 +89,147 @@ export const createTodo = (req: Request, res: Response, next: NextFunction) => {
       isCompleted,
       lastModifiedDt,
       categoryId
-    },
-    joiConf);
-  if (error) {
-    return res.status(400).json({error: error.details[0].message});
-  }
+    } = req.body;
 
-  try {
+    const schema = Joi.object({
+      todoId: Joi.string().lowercase().required(),
+      title: Joi.string().required(),
+      notes: Joi.string(),
+      createdDt: Joi.string().required(),
+      dueDt: Joi.string(),
+      isReminderEnabled: Joi.boolean().required(),
+      isCompleted: Joi.boolean().required(),
+      lastModifiedDt: Joi.string().required(),
+      categoryId: Joi.string().lowercase().required(),
+    });
+
+    const {error} = schema.validate({
+        todoId,
+        title,
+        notes,
+        createdDt,
+        dueDt,
+        isReminderEnabled,
+        isCompleted,
+        lastModifiedDt,
+        categoryId
+      },
+      joiConf);
+    if (error)
+      return next(createError(400, error.details[0].message));
+
     const teamId = req.get("X-API-Key") || "";
 
-    let request = new sql.Request();
-    request.input("team_id", teamId);
-    request.input("todo_id", todoId);
-    request.input("title", title);
-    request.input("notes", notes);
-    request.input("created_dt", createdDt);
-    request.input("due_dt", dueDt);
-    request.input("is_reminder_enabled", isReminderEnabled);
-    request.input("is_completed", isCompleted);
-    request.input("user_id", userId);
-    request.input("last_modified_dt", lastModifiedDt);
-    request.input("category_id", categoryId);
+    const params = [todoId, title, notes, createdDt, dueDt, isReminderEnabled, isCompleted, lastModifiedDt, userId, categoryId, teamId];
+    const result: QueryResult<Todo> = await db.query("INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_reminder_enabled, is_completed, last_modified_dt, user_id, category_id, team_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)", params);
 
-    request.query('INSERT INTO todo (todo_id, title, notes, created_dt, due_dt, is_reminder_enabled, is_completed, last_modified_dt, user_id, category_id, team_id) VALUES (@todo_id, @title, @notes, @created_dt, @due_dt, @is_reminder_enabled, @is_completed, @last_modified_dt, @user_id, @category_id, @team_id)', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
-      if (recordset && !err) {
-        res.status(201).json({"message": "Todo added successfully"});
-      } else {
-        next(createError(500, "Error creating todo"));
-      }
-    });
-  } catch (e) {
-    next(createError());
+    if (result.rowCount === 0)
+      return next(createError(500, "Error creating todo"));
+
+    res.status(201).json({"message": "Todo added successfully"});
+
+  } catch (error) {
+    next(error);
   }
 }
 
-export const updateTodo = (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.body.user.userId;
-  const {todoId} = req.params;
-
-  const {title, notes, createdDt, dueDt, isReminderEnabled, isCompleted, lastModifiedDt, categoryId} = req.body;
-
-  const schema = Joi.object({
-    title: Joi.string().required(),
-    notes: Joi.string(),
-    createdDt: Joi.string().required(),
-    dueDt: Joi.string(),
-    isReminderEnabled: Joi.boolean().required(),
-    isCompleted: Joi.boolean().required(),
-    lastModifiedDt: Joi.string().required(),
-    categoryId: Joi.string().uppercase().required(),
-    todoId: Joi.string().uppercase().required()
-  });
-
-  const {error} = schema.validate({
-    title,
-    notes,
-    createdDt,
-    dueDt,
-    isReminderEnabled,
-    isCompleted,
-    lastModifiedDt,
-    categoryId,
-    todoId,
-  }, joiConf);
-  if (error) {
-    return res.status(400).json({error: error.details[0].message});
-  }
-
+export const updateTodo = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = req.body.user.userId;
+    const {todoId} = req.params;
+
+    const {title, notes, createdDt, dueDt, isReminderEnabled, isCompleted, lastModifiedDt, categoryId} = req.body;
+
+    const schema = Joi.object({
+      title: Joi.string().required(),
+      notes: Joi.string(),
+      createdDt: Joi.string().required(),
+      dueDt: Joi.string(),
+      isReminderEnabled: Joi.boolean().required(),
+      isCompleted: Joi.boolean().required(),
+      lastModifiedDt: Joi.string().required(),
+      categoryId: Joi.string().lowercase().required(),
+      todoId: Joi.string().lowercase().required()
+    });
+
+    const {error} = schema.validate({
+      title,
+      notes,
+      createdDt,
+      dueDt,
+      isReminderEnabled,
+      isCompleted,
+      lastModifiedDt,
+      categoryId,
+      todoId,
+    }, joiConf);
+    if (error) {
+      return next(createError(400, error.details[0].message));
+    }
+
     const teamId = req.get("X-API-Key") || "";
 
-    let request = new sql.Request();
-    request.input("team_id", teamId);
-    request.input("todo_id", todoId);
-    request.input("title", title);
-    request.input("notes", notes);
-    request.input("created_dt", createdDt);
-    request.input("due_dt", dueDt);
-    request.input("is_reminder_enabled", isReminderEnabled);
-    request.input("is_completed", isCompleted);
-    request.input("last_modified_dt", lastModifiedDt);
-    request.input("user_id", userId);
-    request.input("category_id", categoryId);
+    const params = [title, notes, createdDt, dueDt, isReminderEnabled, isCompleted, lastModifiedDt, categoryId, todoId, teamId, userId];
+    const result: QueryResult<Todo> = await db.query('UPDATE todo SET title=$1, notes=$2, created_dt=$3, due_dt=$4, is_reminder_enabled=$5, is_completed=$6, last_modified_dt=$7, category_id=$8 WHERE todo_id=$9 AND team_id=$10 AND user_id=$11', params);
+    if (result.rowCount === 0)
+      return next(createError(404, "Todo not found"));
 
-    request.query('UPDATE todo SET title=@title, notes=@notes, created_dt=@created_dt, due_dt=@due_dt, is_completed=@is_completed, last_modified_dt=@last_modified_dt, category_id=@category_id WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
-      if (recordset && !err) {
-        if (recordset.rowsAffected[0] === 0) {
-          return next(createError(404, "Todo not found"));
-        }
-        res.status(200).json({"message": "Todo updated successfully"});
-      } else {
-        next(createError(500, "Error updating todo"));
-      }
-    });
-  } catch (e) {
-    next(createError());
+    res.status(200).json({"message": "Todo updated successfully"});
+
+  } catch (error) {
+    next(error);
   }
 }
 
-export const deleteTodo = (req: Request, res: Response, next: NextFunction) => {
-  const {todoId} = req.params;
-  const userId = req.body.user.userId;
-
-  const schema = Joi.object({
-    todoId: Joi.string().uppercase().required()
-  });
-
-  const {error} = schema.validate({todoId}, joiConf);
-  if (error) {
-    return res.status(400).json({error: error.details[0].message});
-  }
-
+export const deleteTodo = async (req: Request, res: Response, next: NextFunction) => {
   try {
+
+    const {todoId} = req.params;
+    const userId = req.body.user.userId;
     const teamId = req.get("X-API-Key") || "";
 
-    let request = new sql.Request();
-    request.input("team_id", teamId);
-    request.input("todo_id", todoId);
-    request.input("user_id", userId);
-    request.query('DELETE FROM todo WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
-      if (recordset && !err) {
-        res.status(200).json({"message": "Todo deleted successfully"});
-      } else {
-        next(createError(500, "Error deleting todo"));
-      }
+    const schema = Joi.object({
+      todoId: Joi.string().lowercase().required()
     });
-  } catch (e) {
-    next(createError());
+
+    const {error} = schema.validate({todoId}, joiConf);
+    if (error)
+      return next(createError(400, error.details[0].message));
+
+    const result: QueryResult<Todo> = await db.query('DELETE FROM todo WHERE todo_id=$1 AND team_id=$2 AND user_id=$3', [todoId, teamId, userId]);
+    if (result.rowCount === 0)
+      return next(createError(404, "Todo not found"));
+
+    res.status(200).json({"message": "Todo deleted successfully"});
+  } catch (error) {
+    next(error);
   }
 }
 
-export const updateTodoStatus = (req: Request, res: Response, next: NextFunction) => {
-  const {todoId} = req.params;
-  const {isCompleted} = req.body;
-  const userId = req.body.user.userId;
-
-  const schema = Joi.object({
-    todoId: Joi.string().uppercase().required(),
-    isCompleted: Joi.boolean().required()
-  });
-
-  const {error} = schema.validate({todoId, isCompleted}, joiConf);
-  if (error) {
-    return res.status(400).json({error: error.details[0].message});
-  }
-
+export const updateTodoStatus = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const {todoId} = req.params;
+    const {isCompleted} = req.body;
+    const userId = req.body.user.userId;
+
+    const schema = Joi.object({
+      todoId: Joi.string().lowercase().required(),
+      isCompleted: Joi.boolean().required()
+    });
+
+    const {error} = schema.validate({todoId, isCompleted}, joiConf);
+    if (error)
+      return next(createError(error.details[0].message));
+
     const teamId = req.get("X-API-Key") || "";
 
-    let request = new sql.Request();
-    request.input("team_id", teamId);
-    request.input("todo_id", todoId);
-    request.input("is_completed", isCompleted);
-    request.input("user_id", userId);
-    request.query('UPDATE todo SET is_completed=@is_completed WHERE todo_id=@todo_id AND team_id=@team_id AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<Todo> | undefined) => {
-      if (recordset && !err) {
-        if (recordset.rowsAffected[0] === 0) {
-          return next(createError(404, "Todo not found"));
-        }
-        res.status(200).json({"message": "Todo status updated successfully"});
-      } else {
-        next(createError(500, "Error updating todo status"));
-      }
-    });
-  } catch (e) {
-    next(createError());
+    const result: QueryResult<Todo> = await db.query('UPDATE todo SET is_completed=$1 WHERE todo_id=$2 AND team_id=$3 AND user_id=$4', [isCompleted, todoId, teamId, userId]);
+    if (result.rowCount === 0)
+      return next(createError(404, "Todo not found"));
+
+    res.status(200).json({"message": "Todo status updated successfully"});
+  } catch (error) {
+    next(error);
   }
 }
 

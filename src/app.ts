@@ -1,10 +1,12 @@
 import express, {Express, NextFunction, Request, Response} from 'express';
 import logger from 'morgan';
-import sql, {config} from 'mssql';
-import env from 'dotenv';
 import cors from "cors";
+// swagger
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./swagger.json";
+
+// database connection
+import db from "./db";
 
 // routes
 import apiRouter from "./routes/apiRoutes";
@@ -12,10 +14,8 @@ import apiRouter from "./routes/apiRoutes";
 // middleware
 import {errorHandler} from "./middleware/errorHandler";
 import {verifyTeamId} from "./middleware/teamIdChecker";
-import {fetchTeamIdsFromDB} from "./shared/helper";
 import {limitRequests} from "./middleware/rateLimiter";
-
-env.config();
+import {fetchTeamIdsFromDB} from "./shared/helper";
 
 const app: Express = express();
 
@@ -28,27 +28,21 @@ app.use("/api", verifyTeamId, limitRequests, apiRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // database connection
-const dbConfig: config = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  server: "madhack.database.windows.net",
-  database: process.env.DB_NAME,
-  options: {
-    encrypt: true
-  }
-}
-
-// connect to database
-sql.connect(dbConfig)
-  .then(() => console.log('Database connected'))
+db.connect()
+  .then(() => {
+    console.log("Database connected");
+    // Read sql file and execute it
+  })
   // .then(() => {
-  // create tables from schema file if they do not exist
-  // const sqlFile = fs.readFileSync(path.resolve(__dirname, '../scripts/schema.sql')).toString();
-  // return sql.query(sqlFile);
+  //   console.log("Database schema created");
   // })
-  // .then(() => console.log('Tables created'))
-  .then(() => fetchTeamIdsFromDB())
-  .catch(err => console.log(err));
+  .then(fetchTeamIdsFromDB)
+  .then(() => {
+    console.log("Team access tokens fetched");
+  })
+  .catch((err: Error) => {
+    console.log(err);
+  });
 
 // catch 404 and forward to error handler
 app.use((req: Request, res: Response, next: NextFunction) => {

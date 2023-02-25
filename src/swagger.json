@@ -15,7 +15,11 @@
   "servers": [
     {
       "url": "https://agon.madhack.ucscieee.com/api",
-      "description": "MADHack Server"
+      "description": "Agon Server"
+    },
+    {
+      "url": "https://backup.agon.madhack.ucscieee.com/api",
+      "description": "Agon Backup Server"
     },
     {
       "url": "http://localhost:3001/api",
@@ -82,6 +86,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/response_401_object"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_429_object"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response_500_object"
                 }
               }
             }
@@ -247,7 +271,7 @@
                   "$ref": "#/components/schemas/response_409_object"
                 },
                 "example": {
-                  "error": "User already exists"
+                  "error": "Email already exists"
                 }
               }
             }
@@ -340,7 +364,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AppUser"
+                "$ref": "#/components/schemas/AppUserWithoutPasswordAndId"
               }
             }
           }
@@ -645,12 +669,12 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response_200_object"
+                  "$ref": "#/components/schemas/response_201_object"
                 },
                 "example": {
                   "message": "Todo created successfully"
@@ -1138,7 +1162,7 @@
           "userId": {
             "type": "string",
             "format": "uuid",
-            "example": "D290F1EE-6C54-4B01-90E6-D701748F0851"
+            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
           },
           "firstName": {
             "type": "string",
@@ -1182,7 +1206,7 @@
           "userId": {
             "type": "string",
             "format": "uuid",
-            "example": "D290F1EE-6C54-4B01-90E6-D701748F0851"
+            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
           },
           "firstName": {
             "type": "string",
@@ -1203,7 +1227,41 @@
           "avatarUrl": {
             "type": "string",
             "nullable": true,
-            "example": "user-avatars/D290F1EE-6C54-4B01-90E6-D701748F0851.png"
+            "example": "user-avatars/d290f1ee-6c54-4b01-90e6-d701748f0851.png"
+          }
+        },
+        "description": "A user of the mobile application"
+      },
+      "AppUserWithoutPasswordAndId": {
+        "required": [
+          "firstName",
+          "lastName",
+          "email",
+          "contactNo",
+          "avatarUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "johndoe@example.com"
+          },
+          "contactNo": {
+            "type": "string",
+            "example": "0712345678"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "user-avatars/d290f1ee-6c54-4b01-90e6-d701748f0851.png"
           }
         },
         "description": "A user of the mobile application"
@@ -1218,7 +1276,7 @@
           "categoryId": {
             "type": "string",
             "format": "uuid",
-            "example": "D290F1EE-6C54-4B01-90E6-D701748F0851"
+            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
           },
           "categoryName": {
             "type": "string",
@@ -1249,12 +1307,12 @@
           "todoId": {
             "type": "string",
             "format": "uuid",
-            "example": "D290F1EE-6C54-4B01-90E6-D701748F0851"
+            "example": "d290f1ee-6c54-4b01-90e6-d701748f0851"
           },
           "categoryId": {
             "type": "string",
             "format": "uuid",
-            "example": "064596AB-85CE-4107-B390-2E3989F7EF40"
+            "example": "064596ab-85ce-4107-b390-2e3989f7ef40"
           },
           "title": {
             "type": "string",
@@ -1267,12 +1325,12 @@
           "createdDt": {
             "type": "string",
             "format": "date-time",
-            "example": "2023-02-25T10:00:00Z"
+            "example": "2023-02-26 18:00:00"
           },
           "dueDt": {
             "type": "string",
             "format": "date-time",
-            "example": "2023-02-25T10:00:00Z"
+            "example": "2023-02-26 18:00:00"
           },
           "isCompleted": {
             "type": "boolean",
@@ -1285,7 +1343,7 @@
           "lastModifiedDt": {
             "type": "string",
             "format": "date-time",
-            "example": "2023-02-25T10:00:00Z"
+            "example": "2023-02-26 18:00:00"
           }
         }
       },
@@ -1302,15 +1360,10 @@
         ],
         "type": "object",
         "properties": {
-          "todoId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "56F9A317-653F-45C7-A5AD-C3AE1FF9A537"
-          },
           "categoryId": {
             "type": "string",
             "format": "uuid",
-            "example": "064596AB-85CE-4107-B390-2E3989F7EF40"
+            "example": "064596ab-85ce-4107-b390-2e3989f7ef40"
           },
           "title": {
             "type": "string",
@@ -1323,12 +1376,12 @@
           "createdDt": {
             "type": "string",
             "format": "date-time",
-            "example": "2023-02-25T10:00:00Z"
+            "example": "2023-02-26 18:00:00"
           },
           "dueDt": {
             "type": "string",
             "format": "date-time",
-            "example": "2023-02-25T10:00:00Z"
+            "example": "2023-02-26 18:00:00"
           },
           "isCompleted": {
             "type": "boolean",
@@ -1341,7 +1394,7 @@
           "lastModifiedDt": {
             "type": "string",
             "format": "date-time",
-            "example": "2023-02-25T10:00:00Z"
+            "example": "2023-02-26 18:00:00"
           }
         }
       },
@@ -1398,6 +1451,15 @@
           "error": {
             "type": "string",
             "example": "Conflict"
+          }
+        }
+      },
+      "response_429_object": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Too many requests from this team, please try again after 10 minutes"
           }
         }
       },
