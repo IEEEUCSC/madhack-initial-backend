@@ -3,43 +3,38 @@ import multer from 'multer';
 import {v1 as uuid_v1} from 'uuid';
 import createError from "http-errors";
 import Joi from "joi";
-import sql, {IResult} from "mssql";
 import AppUser from "../models/AppUser";
 import joiConf from "../shared/joiConf";
+import {QueryResult} from "pg";
+import db from "../db";
+import {TeamCount} from "./authController";
 
-export const getUser = (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.body.user.userId;
-
+export const getUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = req.body.user.userId;
     const teamToken = req.get("X-API-Key") || "";
 
-    let request = new sql.Request();
-    request.input("team_token", teamToken);
-    request.input("user_id", userId);
-    request.query('SELECT * FROM app_user WHERE team_id=@team_token AND user_id=@user_id', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
-      if (recordset && !err) {
-        const user = recordset.recordset[0];
-        res.status(200).json({
-          "userId": user.user_id,
-          "firstName": user.first_name,
-          "lastName": user.last_name,
-          "email": user.email,
-          "contactNo": user.contact_no,
-          "avatarUrl": user.avatar_url,
-        });
-      } else {
-        res.status(500).json({"message": "Error retrieving user"});
-      }
-    });
-  } catch (e) {
-    next(createError());
+    const result: QueryResult<AppUser> = await db.query('SELECT * FROM app_user WHERE team_id=$1 AND user_id=$2', [teamToken, userId]);
+    if (result.rowCount == 0 || result.rows.length == 0) {
+      return res.status(404).json({"message": "User not found"});
+    }
+    const user: AppUser = result.rows[0];
+    res.status(200).json({
+      "userId": user.user_id,
+      "firstName": user.first_name,
+      "lastName": user.last_name,
+      "email": user.email,
+      "contactNo": user.contact_no,
+      "avatarUrl": user.avatar_url ?? null,
+    })
+  } catch (error) {
+    next(error);
   }
 };
 
-// TODO: write to S3 bucket
 export const uploadAvatar = (req: Request, res: Response, next: NextFunction) => {
   const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
+    destination: (req: Request, file: Express.Multer.File, cb: CallableFunction) => {
       cb(null, 'uploads/user-avatars/');
     },
     filename: (req, file, cb) => {
@@ -56,73 +51,64 @@ export const uploadAvatar = (req: Request, res: Response, next: NextFunction) =>
     } else if (!req.file) {
       next(createError(400, "No avatar uploaded"));
     } else {
-      // Return the URL of the uploaded avatar in S3 bucket
       res.status(200).json({message: "Image uploaded successfully", avatarUrl: req.file.path});
     }
   });
 }
 
-export const updateUser = (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.body.user.userId;
-
-  const {firstName, lastName, email, password, contactNo, avatarUrl} = req.body;
-
-  const schema = Joi.object({
-    firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
-    contactNo: Joi.string().required(),
-    avatarUrl: Joi.string().required().allow(null),
-  });
-
-  const {error} = schema.validate({firstName, lastName, email, password, contactNo, avatarUrl}, joiConf);
-  if (error) {
-    return res.status(400).json({error: error.details[0].message});
-  }
-
+export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
+
+    const userId = req.body.user.userId;
+
+    const {firstName, lastName, email, contactNo, avatarUrl} = req.body;
+
+    const schema = Joi.object({
+      firstName: Joi.string().required(),
+      lastName: Joi.string().required(),
+      email: Joi.string().email().required(),
+      contactNo: Joi.string().required(),
+      avatarUrl: Joi.string().required().allow(null),
+    });
+
+    const {error} = schema.validate({firstName, lastName, email, contactNo, avatarUrl}, joiConf);
+    if (error)
+      next(createError(error.details[0].message));
+
     const teamId = req.get("X-API-Key") || "";
 
-    let request = new sql.Request();
-    request.input("team_id", teamId);
-    request.input("user_id", userId);
-    request.input("first_name", firstName);
-    request.input("last_name", lastName);
-    request.input("email", email);
-    request.input("password", password);
-    request.input("contact_no", contactNo);
-    request.input("avatar_url", avatarUrl);
-    request.input("team_id", teamId);
-    request.query('UPDATE app_user SET first_name=@first_name, last_name=@last_name, email=@email, password=@password, contact_no=@contact_no, avatar_url=@avatar_url WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
-      if (recordset && !err) {
-        res.status(200).json({"message": "User updated successfully"});
-      } else {
-        res.status(500).json({"message": "Error updating user"});
-      }
-    });
-  } catch (e) {
-    next(createError());
+    const countResult: QueryResult<TeamCount> = await db.query('SELECT COUNT(*) AS count from app_user WHERE team_id=$1 AND email=$2', [teamId, email]);
+    if (countResult.rowCount == 0)
+      return next(createError(500, "Error registering user"));
+
+    if (countResult.rows[0].count > 0)
+      return next(createError(409, "Email already exists"));
+
+    const params = [firstName, lastName, email, contactNo, avatarUrl, userId, teamId];
+    const result: QueryResult<AppUser> = await db.query('UPDATE app_user SET first_name=$1, last_name=$2, email=$3, contact_no=$5, avatar_url=$6 WHERE user_id=$7 AND team_id=$8', params);
+
+    if (result.rowCount == 0 || result.rows.length > 0)
+      next(createError(500, "Error updating user"));
+
+    res.status(200).json({"message": "User updated successfully"});
+
+  } catch (error) {
+    next(error);
   }
 }
 
-export const deleteUser = (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.body.user.userId;
-
+export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = req.body.user.userId;
     const teamId = req.get("X-API-Key") || "";
 
-    let request = new sql.Request();
-    request.input("team_id", teamId);
-    request.input("user_id", userId);
-    request.query('DELETE FROM app_user WHERE user_id=@user_id AND team_id=@team_id', async (err: Error | undefined, recordset: IResult<AppUser> | undefined) => {
-      if (recordset && !err) {
-        res.status(200).json({"message": "User deleted successfully"});
-      } else {
-        res.status(500).json({"message": "Error deleting user"});
-      }
-    });
-  } catch (e) {
-    next(createError());
+    const result: QueryResult<AppUser> = await db.query('DELETE FROM app_user WHERE user_id=$1 AND team_id=$2', [userId, teamId]);
+
+    if (result.rowCount == 0 || result.rows.length > 0)
+      next(createError(500, "Error deleting user"));
+
+    res.status(200).json({"message": "User deleted successfully"});
+  } catch (error) {
+    next(error);
   }
 }
