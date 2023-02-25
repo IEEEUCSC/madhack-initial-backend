@@ -28,21 +28,19 @@ app.use("/api", verifyTeamId, limitRequests, apiRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // database connection
-db.connect()
-  .then(() => {
-    console.log("Database connected");
-    // Read sql file and execute it
-  })
-  // .then(() => {
-  //   console.log("Database schema created");
-  // })
-  .then(fetchTeamIdsFromDB)
-  .then(() => {
-    console.log("Team access tokens fetched");
-  })
-  .catch((err: Error) => {
-    console.log(err);
-  });
+if (process.env.NODE_ENV !== "test") {
+  db.connect()
+    .then(() => {
+      console.log("Database connected");
+    })
+    .then(fetchTeamIdsFromDB)
+    .then(() => {
+      console.log("Team access tokens fetched");
+    })
+    .catch((err: Error) => {
+      console.log(err);
+    });
+}
 
 // catch 404 and forward to error handler
 app.use((req: Request, res: Response, next: NextFunction) => {

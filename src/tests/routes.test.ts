@@ -4,12 +4,10 @@ import {v4 as uuid_v4} from "uuid";
 import * as fs from "fs";
 import * as path from "path";
 import db from "../db";
+import app from "../app";
+import {fetchTeamIdsFromDB} from "../shared/helper";
 
 dotenv.config();
-
-const baseUrl = process.env.BASE_URL || "http://localhost:3001";
-
-const apiUrl = baseUrl + "/api";
 
 // Test Team Token
 const teamToken = "e3462731-3379-4f86-bb4a-f4a2aa1c611b";
@@ -21,8 +19,15 @@ let categories: { categoryId: string; categoryName: string }[] = [];
 // Todos
 let todos: { todoId: string; title: string; notes: string; dueDt: string; isReminderEnabled: boolean; isCompleted: boolean; categoryId: string }[] = [];
 
+// Set timeout to 10 seconds
+jest.setTimeout(10000);
+
 beforeAll(async () => {
   try {
+    await db.connect();
+    console.log("Database connected");
+    await fetchTeamIdsFromDB();
+    console.log("Team access tokens fetched");
     const sqlFile = fs.readFileSync(path.resolve(__dirname, '../../scripts/reset_team.sql')).toString();
     await db.query(sqlFile, [])
   } catch (err) {
@@ -32,23 +37,23 @@ beforeAll(async () => {
 
 describe("Default Route", () => {
   it("should return 200", async () => {
-    const res = await request(apiUrl)
-      .get("/")
+    const res = await request(app)
+      .get("/api")
       .set("X-API-Key", teamToken);
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("message");
   })
 
   it("should return 401", async () => {
-    const res = await request(apiUrl)
-      .get("/");
+    const res = await request(app)
+      .get("/api");
     expect(res.statusCode).toEqual(401);
     expect(res.body).toHaveProperty("error");
   })
 
   it("should return 403", async () => {
-    const res = await request(apiUrl)
-      .get("/")
+    const res = await request(app)
+      .get("/api")
       .set("X-API-Key", "invalid");
     expect(res.statusCode).toEqual(403);
     expect(res.body).toHaveProperty("error");
@@ -68,16 +73,16 @@ let user = {
 describe("User", () => {
   describe("User Registration", () => {
     it("should return 201", async () => {
-      const res = await request(apiUrl)
-        .post("/auth/register")
+      const res = await request(app)
+        .post("/api/auth/register")
         .set("X-API-Key", teamToken)
         .send(user)
       expect(res.statusCode).toEqual(201);
     });
 
     it("should return 409", async () => {
-      const res = await request(apiUrl)
-        .post(`/auth/register`)
+      const res = await request(app)
+        .post(`/api/auth/register`)
         .set("X-API-Key", teamToken)
         .send(user)
       expect(res.statusCode).toEqual(409);
@@ -85,8 +90,8 @@ describe("User", () => {
     });
 
     it("should return 400", async () => {
-      const res = await request(apiUrl)
-        .post(`/auth/register`)
+      const res = await request(app)
+        .post(`/api/auth/register`)
         .set("X-API-Key", teamToken)
         .send({
           "userId": uuid_v4().toString(),
@@ -101,8 +106,8 @@ describe("User", () => {
 
   describe("User Login", () => {
     it("should return 200", async () => {
-      const res = await request(apiUrl)
-        .post(`/auth/login`)
+      const res = await request(app)
+        .post(`/api/auth/login`)
         .set("X-API-Key", teamToken)
         .send({
           "email": user.email,
@@ -114,8 +119,8 @@ describe("User", () => {
     });
 
     it("should return 401", async () => {
-      const res = await request(apiUrl)
-        .post(`/auth/login`)
+      const res = await request(app)
+        .post(`/api/auth/login`)
         .set("X-API-Key", teamToken)
         .send({
           "email": user.email,
@@ -126,8 +131,8 @@ describe("User", () => {
     });
 
     it("should return 400", async () => {
-      const res = await request(apiUrl)
-        .post(`/auth/login`)
+      const res = await request(app)
+        .post(`/api/auth/login`)
         .set("X-API-Key", teamToken)
         .send({
           "email": user.email
@@ -139,8 +144,8 @@ describe("User", () => {
 
   describe("User Profile", () => {
     it("should return 200", async () => {
-      const res = await request(apiUrl)
-        .get(`/user`)
+      const res = await request(app)
+        .get(`/api/user`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
       expect(res.statusCode).toEqual(200);
@@ -153,8 +158,8 @@ describe("User", () => {
     });
 
     it("should return 200", async () => {
-      await request(apiUrl)
-        .put(`/user`)
+      await request(app)
+        .put(`/api/user`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
         .send({
@@ -170,8 +175,8 @@ describe("User", () => {
 
 describe("Categories", () => {
   it("should return 200", async () => {
-    const res = await request(apiUrl)
-      .get(`/category`)
+    const res = await request(app)
+      .get(`/api/category`)
       .set("X-API-Key", teamToken)
       .set("Authorization", `Bearer ${bearerToken}`)
     expect(res.statusCode).toEqual(200);
@@ -188,8 +193,8 @@ describe("Todos", () => {
 
   describe("Fetch Empty Array", () => {
     it("should return 200", async () => {
-      const res = await request(apiUrl)
-        .get(`/todo`)
+      const res = await request(app)
+        .get(`/api/todo`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
       expect(res.statusCode).toEqual(200)
@@ -200,8 +205,8 @@ describe("Todos", () => {
 
   describe("Create Two Todos", () => {
     it("should return 201", async () => {
-      const res = await request(apiUrl)
-        .post(`/todo`)
+      const res = await request(app)
+        .post(`/api/todo`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
         .send({
@@ -219,8 +224,8 @@ describe("Todos", () => {
     });
 
     it("should return 201", async () => {
-      const res = await request(apiUrl)
-        .post(`/todo`)
+      const res = await request(app)
+        .post(`/api/todo`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
         .send({
@@ -240,8 +245,8 @@ describe("Todos", () => {
 
   describe("Fetch Todos", () => {
     it("should return 200", async () => {
-      const res = await request(apiUrl)
-        .get(`/todo`)
+      const res = await request(app)
+        .get(`/api/todo`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
       expect(res.statusCode).toEqual(200);
@@ -265,8 +270,8 @@ describe("Todos", () => {
   // TODO fix timestamp mismatch
   describe("Update Todo", () => {
     it("should return 200", async () => {
-      const res = await request(apiUrl)
-        .put(`/todo/${todos[0].todoId}`)
+      const res = await request(app)
+        .put(`/api/todo/${todos[0].todoId}`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
         .send({
@@ -283,8 +288,8 @@ describe("Todos", () => {
     });
 
     it("should return 200", async () => {
-      const res = await request(apiUrl)
-        .get(`/todo/${todos[0].todoId}`)
+      const res = await request(app)
+        .get(`/api/todo/${todos[0].todoId}`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
       expect(res.statusCode).toEqual(200);
@@ -313,16 +318,16 @@ describe("Todos", () => {
 
   describe("Delete Todo", () => {
     it("should return 200", async () => {
-      const res = await request(apiUrl)
-        .delete(`/todo/${todos[0].todoId}`)
+      const res = await request(app)
+        .delete(`/api/todo/${todos[0].todoId}`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
       expect(res.statusCode).toEqual(200);
     });
 
     it("should return 200", async () => {
-      const res = await request(apiUrl)
-        .get(`/todo`)
+      const res = await request(app)
+        .get(`/api/todo`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
       expect(res.statusCode).toEqual(200);
@@ -332,6 +337,11 @@ describe("Todos", () => {
   });
 });
 
-afterAll(async () => {
-  await db.close();
-});
+// afterAll(async () => {
+// try {
+//   await db.end();
+// } catch (error) {
+//   console.log(error);
+// }
+// });
+afterAll(() => new Promise(r => setTimeout(r, 0)))

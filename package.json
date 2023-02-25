@@ -7,7 +7,7 @@
     "build": "npx tsc",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q bin/www.js\"",
     "start": "node bin/www.js",
-    "test": "jest --coverage --runInBand --detectOpenHandles"
+    "test": "jest --coverage"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
