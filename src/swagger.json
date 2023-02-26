@@ -18,7 +18,7 @@
       "description": "Agon Server"
     },
     {
-      "url": "https://backup.agon.madhack.ucscieee.com/api",
+      "url": "http://backup.agon.madhack.ucscieee.com/api",
       "description": "Agon Backup Server"
     },
     {
