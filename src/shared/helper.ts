@@ -5,6 +5,7 @@ import db from "../db";
 import {tokensList} from "./variables";
 import AppUser from "../models/AppUser";
 import bcrypt from "bcrypt";
+import {QueryResult} from "pg";
 
 export const fetchTeamIdsFromDB = async () => {
   try {
@@ -32,4 +33,44 @@ export const addUserToDB = async (user: AppUser): Promise<boolean> => {
     return false
   }
   return false;
+}
+
+interface memberDetails {
+  name: string;
+  email: string;
+  contact: string;
+  discord: string;
+}
+
+interface teamDetails {
+  uuid: string;
+  team_name: string;
+  memberDetails: {
+    leader: memberDetails;
+    member2: memberDetails;
+    member3: memberDetails;
+    member4: memberDetails;
+  }
+}
+
+export const addTeamTokens = async () => {
+  try {
+    const teamDetails = await fetch("https://saliya.ml/madhack/api/get_uuid", {
+      method: "GET",
+      headers: {
+        "X-API-Key": "MADAPI-266a-42dd-be51-3c0347ef8eb5",
+      }
+    })
+    const teamDetailsJSON = await teamDetails.json();
+    const teamDetailsArray = teamDetailsJSON.data;
+    const promises: Promise<QueryResult>[] = teamDetailsArray.map((team: teamDetails) => {
+      const params = [team.uuid, team.team_name];
+      return db.query('INSERT INTO team (team_id, team_name) VALUES ($1, $2)', params);
+    });
+
+    await Promise.all(promises);
+
+  } catch (error) {
+    console.log(error);
+  }
 }

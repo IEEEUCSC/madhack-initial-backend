@@ -158,7 +158,7 @@ describe("User", () => {
     });
 
     it("should return 200", async () => {
-      await request(app)
+      const res = await request(app)
         .put(`/api/user`)
         .set("X-API-Key", teamToken)
         .set("Authorization", `Bearer ${bearerToken}`)
@@ -169,6 +169,7 @@ describe("User", () => {
           "contactNo": "0712345678",
           "avatarUrl": null
         });
+      expect(res.statusCode).toEqual(200);
     });
   });
 });

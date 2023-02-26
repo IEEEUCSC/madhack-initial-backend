@@ -60,10 +60,9 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
       return next(createError(409, "Email already exists"));
 
     const params = [firstName, lastName, email, contactNo, avatarUrl, userId, teamId];
-    const result: QueryResult<AppUser> = await db.query('UPDATE app_user SET first_name=$1, last_name=$2, email=$3, contact_no=$5, avatar_url=$6 WHERE user_id=$7 AND team_id=$8', params);
-
-    if (result.rowCount == 0 || result.rows.length > 0)
-      next(createError(500, "Error updating user"));
+    const result: QueryResult<AppUser> = await db.query('UPDATE app_user SET first_name=$1, last_name=$2, email=$3, contact_no=$4, avatar_url=$5 WHERE user_id=$6 AND team_id=$7', params);
+    if (result.rowCount === 0)
+      return next(createError(500, "Error updating user"));
 
     res.status(200).json({"message": "User updated successfully"});
 
