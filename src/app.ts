@@ -16,11 +16,16 @@ import {errorHandler} from "./middleware/errorHandler";
 import {verifyTeamId} from "./middleware/teamIdChecker";
 import {limitRequests} from "./middleware/rateLimiter";
 import {fetchTeamIdsFromDB} from "./shared/helper";
+import * as fs from "fs";
 
 const app: Express = express();
 
 app.use(cors())
-app.use(logger('dev'));
+logger.token('key', (req: Request) => req.get('X-API-Key'));
+app.use(logger('api-key - :key remote-addr - :remote-user [:date] “:method :url HTTP/:http-version” :status :res[content-length]', {
+  stream: fs.createWriteStream('./access.log', {flags: 'a'})
+}));
+// app.use(logger('dev'), options({exposedHeaders: ['X-API-Key']}));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 

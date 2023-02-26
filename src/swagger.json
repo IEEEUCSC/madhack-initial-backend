@@ -18,7 +18,7 @@
       "description": "Agon Server"
     },
     {
-      "url": "https://backup.agon.madhack.ucscieee.com/api",
+      "url": "http://backup.agon.madhack.ucscieee.com/api",
       "description": "Agon Backup Server"
     },
     {
@@ -766,8 +766,8 @@
         "tags": [
           "todo"
         ],
-        "summary": "retrieves todo list",
-        "description": "Gets todo list of logged in user",
+        "summary": "retrieves a todo",
+        "description": "Gets details of specific todo",
         "operationId": "getTodo",
         "responses": {
           "200": {

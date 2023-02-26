@@ -267,7 +267,6 @@ describe("Todos", () => {
     });
   });
 
-  // TODO fix timestamp mismatch
   describe("Update Todo", () => {
     it("should return 200", async () => {
       const res = await request(app)
@@ -316,6 +315,24 @@ describe("Todos", () => {
     });
   });
 
+  describe("Fetch Todo", () => {
+    it("should return 404", async () => {
+      const res = await request(app)
+        .get(`/api/todo/${uuid_v4().toString()}`)
+        .set("X-API-Key", teamToken)
+        .set("Authorization", `Bearer ${bearerToken}`)
+      expect(res.statusCode).toEqual(404);
+    });
+
+    it("should return 400", async () => {
+      const res = await request(app)
+        .get(`/api/todo/123`)
+        .set("X-API-Key", teamToken)
+        .set("Authorization", `Bearer ${bearerToken}`)
+      expect(res.statusCode).toEqual(400);
+    });
+  });
+
   describe("Delete Todo", () => {
     it("should return 200", async () => {
       const res = await request(app)
@@ -334,14 +351,50 @@ describe("Todos", () => {
       expect(res.body).toBeInstanceOf(Array);
       expect(res.body.length).toBe(1);
     });
+
+  });
+
+  describe("Todo Status", () => {
+    it("should return 200", async () => {
+      const res = await request(app)
+        .put(`/api/todo/${todos[1].todoId}/status`)
+        .set("X-API-Key", teamToken)
+        .set("Authorization", `Bearer ${bearerToken}`)
+        .send({
+          "isCompleted": false
+        });
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty("message");
+    });
+
+    it("should return 404", async () => {
+      const res = await request(app)
+        .put(`/api/todo/${uuid_v4().toString()}/status`)
+        .set("X-API-Key", teamToken)
+        .set("Authorization", `Bearer ${bearerToken}`)
+        .send({
+          "isCompleted": true
+        });
+      expect(res.statusCode).toEqual(404);
+      expect(res.body).toHaveProperty("error");
+    });
+
+    it("should return 400", async () => {
+      const res = await request(app)
+        .put(`/api/todo/${todos[0].todoId}/status`)
+        .set("X-API-Key", teamToken)
+        .set("Authorization", `Bearer ${bearerToken}`)
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty("error");
+    });
   });
 });
 
-// afterAll(async () => {
-// try {
-//   await db.end();
-// } catch (error) {
-//   console.log(error);
-// }
-// });
-afterAll(() => new Promise(r => setTimeout(r, 0)))
+afterAll(async () => {
+  try {
+    await db.end();
+    return new Promise(r => setTimeout(r, 0));
+  } catch (err) {
+    console.log(err);
+  }
+})

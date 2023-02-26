@@ -17,7 +17,7 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     const {userId, firstName, lastName, email, password, contactNo, avatarUrl} = req.body;
 
     const schema = Joi.object({
-      userId: Joi.string().lowercase().required(),
+      userId: Joi.string().lowercase().required().uuid({version: "uuidv4"}),
       firstName: Joi.string().required(),
       lastName: Joi.string().required(),
       email: Joi.string().email().required(),
@@ -81,7 +81,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     const user_id = user.user_id;
     const match = (await bcrypt.compare(password, user.password))
     if (match) {
-      const token = jwt.sign({"userId": user_id}, process.env.JWT_SECRET || 'secret', {expiresIn: '1h'});
+      const token = jwt.sign({"userId": user_id}, process.env.JWT_SECRET || 'secret');
       return res.status(200).json({"message": "User logged in successfully", "token": token});
     }
     return next(createError(401, "Invalid credentials"));

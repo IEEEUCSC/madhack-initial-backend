@@ -1,6 +1,4 @@
 import {NextFunction, Request, Response} from "express";
-import multer from 'multer';
-import {v1 as uuid_v1} from 'uuid';
 import createError from "http-errors";
 import Joi from "joi";
 import AppUser from "../models/AppUser";
@@ -8,6 +6,7 @@ import joiConf from "../shared/joiConf";
 import {QueryResult} from "pg";
 import db from "../db";
 import {TeamCount} from "./authController";
+import {uploadToS3} from "../shared/imageUpload";
 
 export const getUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -31,30 +30,6 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
     next(error);
   }
 };
-
-export const uploadAvatar = (req: Request, res: Response, next: NextFunction) => {
-  const storage = multer.diskStorage({
-    destination: (req: Request, file: Express.Multer.File, cb: CallableFunction) => {
-      cb(null, 'uploads/user-avatars/');
-    },
-    filename: (req, file, cb) => {
-      const extension = file.originalname.split('.').pop()
-      cb(null, uuid_v1() + '.' + extension?.toLowerCase());
-    }
-  });
-
-  const upload = multer({storage: storage, limits: {fileSize: 1024 * 1024}});
-
-  upload.single('file')(req, res, (err) => {
-    if (err) {
-      next(createError(500, err.message));
-    } else if (!req.file) {
-      next(createError(400, "No avatar uploaded"));
-    } else {
-      res.status(200).json({message: "Image uploaded successfully", avatarUrl: req.file.path});
-    }
-  });
-}
 
 export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -108,6 +83,15 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
       next(createError(500, "Error deleting user"));
 
     res.status(200).json({"message": "User deleted successfully"});
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const uploadAvatar = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    uploadToS3(req, res, next);
+
   } catch (error) {
     next(error);
   }

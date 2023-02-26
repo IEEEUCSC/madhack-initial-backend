@@ -43,7 +43,7 @@ export const getTodoById = async (req: Request, res: Response, next: NextFunctio
     const {todoId} = req.params;
 
     const schema = Joi.object({
-      todoId: Joi.string().required()
+      todoId: Joi.string().required().uuid({version: "uuidv4"})
     });
 
     const {error} = schema.validate({todoId}, joiConf);
@@ -92,7 +92,7 @@ export const createTodo = async (req: Request, res: Response, next: NextFunction
     } = req.body;
 
     const schema = Joi.object({
-      todoId: Joi.string().lowercase().required(),
+      todoId: Joi.string().lowercase().required().uuid({version: "uuidv4"}),
       title: Joi.string().required(),
       notes: Joi.string(),
       createdDt: Joi.string().required(),
@@ -100,7 +100,7 @@ export const createTodo = async (req: Request, res: Response, next: NextFunction
       isReminderEnabled: Joi.boolean().required(),
       isCompleted: Joi.boolean().required(),
       lastModifiedDt: Joi.string().required(),
-      categoryId: Joi.string().lowercase().required(),
+      categoryId: Joi.string().lowercase().required().uuid({version: "uuidv4"}),
     });
 
     const {error} = schema.validate({
@@ -149,7 +149,7 @@ export const updateTodo = async (req: Request, res: Response, next: NextFunction
       isCompleted: Joi.boolean().required(),
       lastModifiedDt: Joi.string().required(),
       categoryId: Joi.string().lowercase().required(),
-      todoId: Joi.string().lowercase().required()
+      todoId: Joi.string().lowercase().required().uuid({version: "uuidv4"})
     });
 
     const {error} = schema.validate({
@@ -189,7 +189,7 @@ export const deleteTodo = async (req: Request, res: Response, next: NextFunction
     const teamId = req.get("X-API-Key") || "";
 
     const schema = Joi.object({
-      todoId: Joi.string().lowercase().required()
+      todoId: Joi.string().lowercase().required().uuid({version: "uuidv4"})
     });
 
     const {error} = schema.validate({todoId}, joiConf);
@@ -211,7 +211,6 @@ export const updateTodoStatus = async (req: Request, res: Response, next: NextFu
     const {todoId} = req.params;
     const {isCompleted} = req.body;
     const userId = req.body.user.userId;
-
     const schema = Joi.object({
       todoId: Joi.string().lowercase().required(),
       isCompleted: Joi.boolean().required()
@@ -219,7 +218,7 @@ export const updateTodoStatus = async (req: Request, res: Response, next: NextFu
 
     const {error} = schema.validate({todoId, isCompleted}, joiConf);
     if (error)
-      return next(createError(error.details[0].message));
+      return next(createError(400, error.details[0].message));
 
     const teamId = req.get("X-API-Key") || "";
 
@@ -229,6 +228,7 @@ export const updateTodoStatus = async (req: Request, res: Response, next: NextFu
 
     res.status(200).json({"message": "Todo status updated successfully"});
   } catch (error) {
+    console.log(error);
     next(error);
   }
 }
